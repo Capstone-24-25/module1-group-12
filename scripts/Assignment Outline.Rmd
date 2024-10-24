@@ -10,10 +10,7 @@ output: html_document
 library(ggplot)
 library(readr)
 library(dplyr)
-
-biomarker_raw <- read_csv("\Users\valeriedelafuente\Documents\C")
 ```
-
 
 2. Temporarily remove the outlier trimming from preprocessing and do some exploratory analysis of outlying values. Are there specific subjects (not values) that seem to be outliers? If so, are outliers more frequent in one group or the other? (Hint: consider tabluating the number of outlying values per subject.)
 
