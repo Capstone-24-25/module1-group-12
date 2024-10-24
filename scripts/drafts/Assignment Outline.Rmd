@@ -16,7 +16,7 @@ library(reshape2)
 set.seed(123)
 
 # Read in the data
-biomarker_raw <- read_csv('data/biomarker-raw.csv')
+biomarker_raw <- read_csv('biomarker-raw.csv')
 
 # Subset all proteins in the data and convert to numeric values
 proteins_numeric <- biomarker_raw %>% filter(Group %in% c("ASD", "TD")) %>%
