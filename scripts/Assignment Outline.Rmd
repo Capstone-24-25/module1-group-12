@@ -1,0 +1,28 @@
+---
+title: "Assignment Outline"
+date: "2024-10-24"
+output: html_document
+---
+
+f1) What do you imagine is the reason for log-transforming the protein levels in biomarker-raw.csv? (Hint: look at the distribution of raw values for a sample of proteins.)
+
+2. Temporarily remove the outlier trimming from preprocessing and do some exploratory analysis of outlying values. Are there specific subjects (not values) that seem to be outliers? If so, are outliers more frequent in one group or the other? (Hint: consider tabluating the number of outlying values per subject.)
+
+3) Experiment with the following modifications:
+
+- repeat the analysis but carry out the entire selection procedure on a training partition -- in other words, set aside some testing data at the very beginning and don't use it until you are evaluating accuracy at the very end
+
+- choose a larger number (more than ten) of top predictive proteins using each selection method
+
+- use a fuzzy intersection instead of a hard intersection to combine the sets of top predictive proteins across selection methods
+
+4) How are results affected by each modification?
+
+4) Use any method to find either:
+
+- a simpler panel that achieves comparable classification accuracy
+
+- an alternative panel that achieves improved classification accuracy
+
+Benchmark your results against the in-class analysis.
+
