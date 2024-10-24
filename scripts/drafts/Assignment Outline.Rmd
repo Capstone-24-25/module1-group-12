@@ -102,6 +102,7 @@ library(dplyr)
 temp <- biomarker_clean %>% 
   filter(if_any(CHIP:PLXB2, ~ . ==3))
 
+#number of subjects with at least one outlier by group
 temp %>% 
   count(group)
 
@@ -110,16 +111,24 @@ outlier_count <- temp %>%
   mutate(outliers = sum(c_across(CHIP:PLXB2) == 3)) %>% 
   select(group, ados,outliers, everything())
 
+#total outliers per group and average outlier per subject in each group.
 outlier_count %>% 
   group_by(group) %>% 
   summarise(total_out = sum(outliers), avg_out = mean(outliers))
 
+#box plot of number of outliers per subject in each group
 outlier_count %>% 
   ggplot(aes(x = group, y = outliers)) +
   geom_boxplot() +
   labs(title = 'Outliers per group',
        x = 'Group',
        y = 'Number of outliers') 
+
+#top 10 subjects with most outliers
+outlier_count %>% 
+  arrange(desc(outliers)) %>% 
+  select(group, outliers) %>% 
+  head(10)
 
 #About the same amount of people with at least one outlier in each group (ASD 74, TD 77)
 #But TD have more individuals that have a higher amount of outliers (Boxplot)
