@@ -11,6 +11,7 @@ library(ggplot2)
 library(readr)
 library(dplyr)
 library(reshape2)
+library(tidyverse)
 
 # Set seed for reproducibility
 set.seed(123)
@@ -39,6 +40,12 @@ random_sample <- sample(names(proteins_numeric), 10)
          col = "lightblue",                           
          breaks = 20)                                 
   }
+
+proteins_numeric %>% 
+  select(random_sample) %>% 
+  pivot_longer(everything()) %>% 
+  ggplot(aes(x = value)) + geom_histogram() +
+  facet_wrap(vars(name))
 ```
 
 ```{r}
@@ -56,6 +63,12 @@ random_sample <- sample(names(proteins_numeric), 10)
          col = "lightblue",                           
          breaks = 20)                                 
   }
+
+proteins_numeric_log %>% 
+  select(random_sample) %>% 
+  pivot_longer(everything()) %>% 
+  ggplot(aes(x = value)) + geom_histogram() +
+  facet_wrap(vars(name))
 ```
 
 
