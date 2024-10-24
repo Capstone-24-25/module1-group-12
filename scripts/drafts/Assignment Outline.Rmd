@@ -1,12 +1,16 @@
 ---
 title: "Assignment Outline"
 date: "2024-10-24"
-output: html_document
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: show
 ---
 
 1) What do you imagine is the reason for log-transforming the protein levels in biomarker-raw.csv? (Hint: look at the distribution of raw values for a sample of proteins.)
-```{r}
-#Loading packages
+```{r, warning=FALSE, results='hide'}
+# Loading packages
 library(ggplot2)
 library(readr)
 library(dplyr)
@@ -17,7 +21,7 @@ library(tidyverse)
 set.seed(123)
 
 # Read in the data
-biomarker_raw <- read_csv('biomarker-raw.csv')
+biomarker_raw <- read_csv('biomarker-raw.csv', show_col_types=FALSE)
 ```
 
 ```{r}
@@ -32,15 +36,8 @@ random_sample <- sample(names(proteins_numeric), 10)
 
 ```{r}
 # Looking at distribution of raw values for the random sample of proteins
-  # Plot 10 histograms; one histogram per randomly sampled protein
-  for (protein_name in random_sample) {
-    hist(proteins_numeric[[protein_name]], 
-         main = paste("Histogram of", protein_name),
-         xlab = protein_name,                       
-         col = "lightblue",                           
-         breaks = 20)                                 
-  }
 
+# Plot 10 histograms; one histogram per randomly sampled protein
 proteins_numeric %>% 
   select(random_sample) %>% 
   pivot_longer(everything()) %>% 
@@ -56,13 +53,6 @@ proteins_numeric %>%
     mutate(across(everything(), ~ log(. + 1)))
   
   # Plot 10 histograms; one histogram per randomly sampled protein
-  for (protein_name in random_sample) {
-    hist(proteins_numeric_log[[protein_name]], 
-         main = paste("Histogram of", protein_name),
-         xlab = protein_name,                       
-         col = "lightblue",                           
-         breaks = 20)                                 
-  }
 
 proteins_numeric_log %>% 
   select(random_sample) %>% 
