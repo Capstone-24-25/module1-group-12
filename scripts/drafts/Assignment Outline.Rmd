@@ -5,8 +5,8 @@ output: html_document
 ---
 
 1) What do you imagine is the reason for log-transforming the protein levels in biomarker-raw.csv? (Hint: look at the distribution of raw values for a sample of proteins.)
-
-```{r, warning=FALSE}
+```{r}
+#Loading packages
 library(ggplot2)
 library(readr)
 library(dplyr)
@@ -17,40 +17,45 @@ set.seed(123)
 
 # Read in the data
 biomarker_raw <- read_csv('biomarker-raw.csv')
+```
 
-# Subset all proteins in the data and convert to numeric values
+```{r}
+# Subset all proteins in the dataset and convert to numeric values
 proteins_numeric <- biomarker_raw %>% filter(Group %in% c("ASD", "TD")) %>%
   dplyr::select(contains("protein", ignore.case= TRUE)) %>% 
   mutate(across(everything(), as.numeric))
 
-# Store all protein names into vector
-sample_names <- names(proteins_numeric)
-
-# Randomly sample 10 protein names and store into vetor
-random_sample <- sample(sample_names, 10)
-
-# Plot 10 histograms; one histogram per randomly sampled protein
-for (protein_name in random_sample) {
-  hist(proteins_numeric[[protein_name]], 
-       main = paste("Histogram of", protein_name),
-       xlab = protein_name,                       
-       col = "lightblue",                           
-       breaks = 20)                                 
-}
+# Randomly sample a vector of 10 protein names
+random_sample <- sample(names(proteins_numeric), 10)
 ```
-```{r}
-# Convert all proteins to log transformation
-proteins_numeric_log <- proteins_numeric %>%
-  mutate(across(everything(), ~ log(. + 1)))
 
-# Plot 10 histograms; one histogram per randomly sampled protein, log transformed
-for (protein_name in random_sample) {
-  hist(proteins_numeric_log[[protein_name]], 
-       main = paste("Histogram of", protein_name),
-       xlab = protein_name,                       
-       col = "lightblue",                           
-       breaks = 20)                                 
-}
+```{r}
+# Looking at distribution of raw values for the random sample of proteins
+  # Plot 10 histograms; one histogram per randomly sampled protein
+  for (protein_name in random_sample) {
+    hist(proteins_numeric[[protein_name]], 
+         main = paste("Histogram of", protein_name),
+         xlab = protein_name,                       
+         col = "lightblue",                           
+         breaks = 20)                                 
+  }
+```
+
+```{r}
+# Looking at distribution of raw values for the random sample of proteins that are log-transformed
+
+  # Log-transform all proteins
+  proteins_numeric_log <- proteins_numeric %>%
+    mutate(across(everything(), ~ log(. + 1)))
+  
+  # Plot 10 histograms; one histogram per randomly sampled protein
+  for (protein_name in random_sample) {
+    hist(proteins_numeric_log[[protein_name]], 
+         main = paste("Histogram of", protein_name),
+         xlab = protein_name,                       
+         col = "lightblue",                           
+         breaks = 20)                                 
+  }
 ```
 
 
