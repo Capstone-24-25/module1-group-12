@@ -190,11 +190,19 @@ proteins_s1 <- ttests_out %>%
 ## RANDOM FOREST
 ##################
 
-# store predictors and response separately
-predictors <- biomarker_clean %>%
+# Split the data into training and testing
+biomarker_clean_split <- biomarker_clean %>%
+  initial_split(prop = 0.8)
+
+biomarker_clean_train <- training(biomarker_clean_split)
+
+biomarker_clean_test <- testing(biomarker_clean_split)
+
+# Using only the training set, store predictors and response separately
+predictors <- biomarker_clean_train %>%
   select(-c(group, ados))
 
-response <- biomarker_clean %>% pull(group) %>% factor()
+response <- biomarker_clean_train %>% pull(group) %>% factor()
 
 # fit RF
 set.seed(101422)
@@ -229,12 +237,9 @@ set.seed(101422)
 biomarker_split <- biomarker_sstar %>%
   initial_split(prop = 0.8)
 
-# Extract training data (80%)
 biomarker_training <- training(biomarker_split)
 
-# Extract testing data (20%)
 biomarker_testing <- testing(biomarker_split)
-
 
 # fit logistic regression model to training set
 fit <- glm(class ~ ., 
