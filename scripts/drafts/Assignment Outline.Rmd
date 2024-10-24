@@ -8,7 +8,8 @@ output:
     code_folding: show
 ---
 
-1) What do you imagine is the reason for log-transforming the protein levels in biomarker-raw.csv? (Hint: look at the distribution of raw values for a sample of proteins.)
+1)  What do you imagine is the reason for log-transforming the protein levels in biomarker-raw.csv? (Hint: look at the distribution of raw values for a sample of proteins.)
+
 ```{r, warning=FALSE, results='hide'}
 # Loading packages
 library(ggplot2)
@@ -66,8 +67,7 @@ proteins_numeric_log %>%
   facet_wrap(vars(name))
 ```
 
-
-2. Temporarily remove the outlier trimming from preprocessing and do some exploratory analysis of outlying values. Are there specific subjects (not values) that seem to be outliers? If so, are outliers more frequent in one group or the other? (Hint: consider tabluating the number of outlying values per subject.)
+2.  Temporarily remove the outlier trimming from preprocessing and do some exploratory analysis of outlying values. Are there specific subjects (not values) that seem to be outliers? If so, are outliers more frequent in one group or the other? (Hint: consider tabluating the number of outlying values per subject.)
 
 ```{r}
 library(tidyverse)
@@ -143,9 +143,11 @@ outlier_count %>%
 #TD has a higher amount of total outliers as a group (ASD 813, TD 1161) and on average, an individual in TD would have more outliers (TD 15.1, ASD 11)
 ```
 
-3) Experiment with the following modifications:
+-   From the exploratory data analysis above, we kept the transformation in place, and instead worked with the values that change to the value of `.at` in the function: `trim <- function(x, .at)`. After visualizing the outlier count per group (ASD, TD) in a box plot, and tabling the data, we see there is a total of 74 subjects with at least one outlier in the ASD group, and 77 in the TD group. Visualizing this from the box plot, we see there is a denser set of outliers in the TD class compared to the ASD class. TD has a higher amount of total outliers as a group (ASD 813, TD 1161) and on average, an individual in TD would have more outliers (TD 15.1, ASD 11).
 
-- repeat the analysis but carry out the entire selection procedure on a training partition -- in other words, set aside some testing data at the very beginning and don't use it until you are evaluating accuracy at the very end
+3)  Experiment with the following modifications:
+
+-   repeat the analysis but carry out the entire selection procedure on a training partition -- in other words, set aside some testing data at the very beginning and don't use it until you are evaluating accuracy at the very end
 
 ```{r}
 load('~/GitHub/module1-group-12/data/biomarker-clean.RData')
@@ -260,17 +262,16 @@ biomarker_testing %>%
               event_level = 'second')
 ```
 
-- choose a larger number (more than ten) of top predictive proteins using each selection method
+-   choose a larger number (more than ten) of top predictive proteins using each selection method
 
-- use a fuzzy intersection instead of a hard intersection to combine the sets of top predictive proteins across selection methods
+-   use a fuzzy intersection instead of a hard intersection to combine the sets of top predictive proteins across selection methods
 
 How are results affected by each modification?
 
-4) Use any method to find either:
+4)  Use any method to find either:
 
-- a simpler panel that achieves comparable classification accuracy
+-   a simpler panel that achieves comparable classification accuracy
 
-- an alternative panel that achieves improved classification accuracy
+-   an alternative panel that achieves improved classification accuracy
 
 Benchmark your results against the in-class analysis.
-
