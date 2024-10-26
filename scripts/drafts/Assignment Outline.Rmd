@@ -135,7 +135,7 @@ outlier_count %>%
 
 ```
 
--   From the exploratory data analysis above, we kept the transformation in place, and instead worked with the values that were equal to 3, since any outliers in the data were changed to the value of `.at` in the function: `trim <- function(x, .at)`. After visualizing the outlier count per group (ASD, TD) in a box plot, and tabling the data, we see there is a total of 74 subjects with at least one outlier in the ASD group, and 77 in the TD group. Visualizing this with a box plot, we see there is a denser set of outliers in the TD class compared to the ASD class, which shows that there are more TD has a higher amount of total outliers as a group (ASD 813, TD 1161) and of the subjects with the top 10 most outliers, 7 are from the TD group and 3 are from the ASD group.
+-   From the exploratory data analysis above, we kept the transformation in place, and instead worked with the values that were equal to 3, since any outliers in the data were changed to the value of `.at` in the function: `trim <- function(x, .at)`. After visualizing the outlier count per group (ASD, TD) in a box plot, and tabling the data, we see there is a total of 74 subjects with at least one outlier in the ASD group, and 77 in the TD group. Visualizing this with a box plot, we see there is a denser set of outliers in the TD class compared to the ASD class, which shows that there are more subjects in TD with a very high number of outliers compared to ASD. TD also has a higher amount of total outliers as a group (ASD 813, TD 1161) and of the subjects with the top 10 most outliers, 7 are from the TD group and 3 are from the ASD group.
 
 3)  Experiment with the following modifications:
 
