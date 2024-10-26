@@ -22,6 +22,7 @@ library(randomForest)
 library(tidymodels)
 library(modelr)
 library(yardstick)
+library(kableExtra)
 
 # Set seed for reproducibility
 set.seed(123)
@@ -114,10 +115,6 @@ outlier_count <- temp %>%
   mutate(outliers = sum(c_across(CHIP:PLXB2) == 3)) %>% 
   select(group, ados,outliers, everything())
 
-#total outliers per group and number of people with outliers per group
-outlier_count %>% 
-  group_by(group) %>%
-  summarise(total_out = sum(outliers), subjects_out = n())
 
 #box plot of number of outliers per subject in each group
 outlier_count %>% 
@@ -127,11 +124,18 @@ outlier_count %>%
        x = 'Group',
        y = 'Number of outliers') 
 
+#total outliers per group and number of people with outliers per group
+outlier_count %>% 
+  group_by(group) %>%
+  summarise(total_out = sum(outliers), subjects_out = n()) %>% 
+  kable()
+
 #top 10 subjects with most outliers
 outlier_count %>% 
   arrange(desc(outliers)) %>% 
-  select(group, outliers) %>% 
-  head(10)
+  select(group, outliers) %>%
+  head(10) %>% 
+  kable()
 
 ```
 
