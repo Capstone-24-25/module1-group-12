@@ -70,9 +70,7 @@ proteins_numeric_log %>%
 2.  Temporarily remove the outlier trimming from preprocessing and do some exploratory analysis of outlying values. Are there specific subjects (not values) that seem to be outliers? If so, are outliers more frequent in one group or the other? (Hint: consider tabluating the number of outlying values per subject.)
 
 ```{r}
-library(tidyverse)
-
-
+## FROM PREPROCESSING
 # get names
 var_names <- read_csv('biomarker-raw.csv', 
                       col_names = F, 
@@ -106,23 +104,20 @@ biomarker_clean <- read_csv('biomarker-raw.csv',
   # reorder columns
   select(group, ados, everything())
 
-library(dplyr)
+## NEW STUFF
 temp <- biomarker_clean %>% 
   filter(if_any(CHIP:PLXB2, ~ . ==3))
 
-#number of subjects with at least one outlier by group
-temp %>% 
-  count(group)
 
 outlier_count <- temp %>% 
   rowwise() %>%
   mutate(outliers = sum(c_across(CHIP:PLXB2) == 3)) %>% 
   select(group, ados,outliers, everything())
 
-#total outliers per group and average outlier per subject in each group.
+#total outliers per group and number of people with outliers per group
 outlier_count %>% 
-  group_by(group) %>% 
-  summarise(total_out = sum(outliers), avg_out = mean(outliers))
+  group_by(group) %>%
+  summarise(total_out = sum(outliers), subjects_out = n())
 
 #box plot of number of outliers per subject in each group
 outlier_count %>% 
@@ -138,12 +133,9 @@ outlier_count %>%
   select(group, outliers) %>% 
   head(10)
 
-#About the same amount of people with at least one outlier in each group (ASD 74, TD 77)
-#But TD have more individuals that have a higher amount of outliers (Boxplot)
-#TD has a higher amount of total outliers as a group (ASD 813, TD 1161) and on average, an individual in TD would have more outliers (TD 15.1, ASD 11)
 ```
 
--   From the exploratory data analysis above, we kept the transformation in place, and instead worked with the values that change to the value of `.at` in the function: `trim <- function(x, .at)`. After visualizing the outlier count per group (ASD, TD) in a box plot, and tabling the data, we see there is a total of 74 subjects with at least one outlier in the ASD group, and 77 in the TD group. Visualizing this from the box plot, we see there is a denser set of outliers in the TD class compared to the ASD class. TD has a higher amount of total outliers as a group (ASD 813, TD 1161) and on average, an individual in TD would have more outliers (TD 15.1, ASD 11).
+-   From the exploratory data analysis above, we kept the transformation in place, and instead worked with the values that were equal to 3, since any outliers in the data were changed to the value of `.at` in the function: `trim <- function(x, .at)`. After visualizing the outlier count per group (ASD, TD) in a box plot, and tabling the data, we see there is a total of 74 subjects with at least one outlier in the ASD group, and 77 in the TD group. Visualizing this with a box plot, we see there is a denser set of outliers in the TD class compared to the ASD class, which shows that there are more TD has a higher amount of total outliers as a group (ASD 813, TD 1161) and of the subjects with the top 10 most outliers, 7 are from the TD group and 3 are from the ASD group.
 
 3)  Experiment with the following modifications:
 
