@@ -149,8 +149,20 @@ outlier_count %>%
 
 -   repeat the analysis but carry out the entire selection procedure on a training partition -- in other words, set aside some testing data at the very beginning and don't use it until you are evaluating accuracy at the very end
 
+-   choose a larger number (more than ten) of top predictive proteins using each selection method
+
+-   use a fuzzy intersection instead of a hard intersection to combine the sets of top predictive proteins across selection methods
+
 ```{r}
 load('~/GitHub/module1-group-12/data/biomarker-clean.RData')
+
+# Split the data into training and testing
+biomarker_clean_split <- biomarker_clean %>%
+  initial_split(prop = 0.8)
+
+biomarker_clean_train <- training(biomarker_clean_split)
+
+biomarker_clean_test <- testing(biomarker_clean_split)
 
 ## MULTIPLE TESTING
 ####################
@@ -164,7 +176,7 @@ test_fn <- function(.df){
          var.equal = F)
 }
 
-ttests_out <- biomarker_clean %>%
+ttests_out <- biomarker_clean_train %>%
   # drop ADOS score
   select(-ados) %>%
   # arrange in long format
@@ -186,19 +198,11 @@ ttests_out <- biomarker_clean %>%
 
 # select significant proteins
 proteins_s1 <- ttests_out %>%
-  slice_min(p.adj, n = 10) %>%
+  slice_min(p.adj, n = 30) %>%
   pull(protein)
 
 ## RANDOM FOREST
 ##################
-
-# Split the data into training and testing
-biomarker_clean_split <- biomarker_clean %>%
-  initial_split(prop = 0.8)
-
-biomarker_clean_train <- training(biomarker_clean_split)
-
-biomarker_clean_test <- testing(biomarker_clean_split)
 
 # Using only the training set, store predictors and response separately
 predictors <- biomarker_clean_train %>%
@@ -220,14 +224,26 @@ rf_out$confusion
 proteins_s2 <- rf_out$importance %>% 
   as_tibble() %>%
   mutate(protein = rownames(rf_out$importance)) %>%
-  slice_max(MeanDecreaseGini, n = 10) %>%
+  slice_max(MeanDecreaseGini, n = 30) %>%
   pull(protein)
 
 ## LOGISTIC REGRESSION
 #######################
 
-# select subset of interest
-proteins_sstar <- intersect(proteins_s1, proteins_s2)
+# Average the ranks from t-tests and RF
+proteins_s1_ranked <- data.frame(proteins_s1, rank_s1=c(1:length(proteins_s1)))
+proteins_s2_ranked <- data.frame(proteins_s2, rank_s2=c(1:length(proteins_s2)))
+
+colnames(proteins_s1_ranked) <- c("name", "rank_s1")
+colnames(proteins_s2_ranked) <- c("name", "rank_s2")
+
+proteins_ranked <- merge(proteins_s1_ranked, proteins_s2_ranked, by="name")
+
+proteins_ranked <- proteins_ranked %>% mutate(avg=(rank_s1 + rank_s2) / 2) %>% 
+  arrange(avg)
+
+# pull top significant proteins with fuzzy intersection (average of top ranks)
+proteins_sstar <- proteins_ranked %>% pull(name)
 
 biomarker_sstar <- biomarker_clean %>%
   select(group, any_of(proteins_sstar)) %>%
@@ -262,9 +278,10 @@ biomarker_testing %>%
               event_level = 'second')
 ```
 
--   choose a larger number (more than ten) of top predictive proteins using each selection method
-
--   use a fuzzy intersection instead of a hard intersection to combine the sets of top predictive proteins across selection methods
+We chose the top 30 proteins from each method, t-test and RF. Then, we averaged
+the rank of proteins from both groups, choosing the top ranked that appeared
+in both groups. This ended up yielding 14 significant proteins from this fuzzy
+intersection, and improved all four metric that we used to measure the model.
 
 How are results affected by each modification?
 
