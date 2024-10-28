@@ -40,7 +40,9 @@ Write a brief one-paragraph abstract that describes the contents of your write-u
 
 ## Dataset
 
-Write a brief data description, including: how data were obtained; sample characteristics; variables measured; and data preprocessing. This can be largely based on the source paper and should not exceed 1-2 paragraphs.
+We are working with two datasets, `biomarker-raw.csv` and `biomarker-clean.RData`. Both datasets consist of serum samples of 76 boys who have autism spectrum disorder (ASD) and 78 boys who are typically developing (TD). Serum samples were obtained via fasting blood draw in a 3.5 ml Serum Separation Tube. The boys are of 18 months to 8 years of age. Within each subject, 1,317 proteins are measured, and the data helps to identify early biological markers for ASD. The average age for both groups is roughly the same. The mean ASD group age is 5.6 years old with a standard deviation of 1.7 years, and the mean TD group age is 5.7 years old with a standard deviation of 2 years. It is important to note that 41.7% of ASD subjects and 22.4% of TD subjects have seasonal allergies, which may have an effect on the data. For the 76 ASD subjects, the ethnicities are as follows: 45.2% White/Caucasians, 35.6% Hispanic/Latinos, 4.1% African American, 2.6% Asian, 12.3% Multiple ethnicities/or Other, and 4.1% not reported. For the 78 TD subjects, the ethnicities are as follows: 51.9% White/Caucasians, 7.8% Hispanic/Latinos, 18.2% African American, 3.9% Asian, 18.2% Multiple ethnicities/or Other, and 1.2% not reported.
+
+`biomarker-raw.csv` contains all raw data that has been collected, with subjects row-wise and group, Autism Diagnostic Observation Schedule (ADOS), and proteins column-wise. `biomarker_clean` is the cleaned version of `biomarker-raw.csv` with the raw data log-transformed and z-transformed and outliers trimmed.
 
 ## Summary of published analysis
 
