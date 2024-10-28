@@ -53,7 +53,44 @@ Summarize your findings here. I've included some subheaders in a way that seems 
 
 ### Impact of preprocessing and outliers
 
-Tasks 1-2
+```{r}
+# Subset all proteins in the dataset and convert to numeric values
+proteins_numeric <- biomarker_raw %>% filter(Group %in% c("ASD", "TD")) %>%
+  dplyr::select(contains("protein", ignore.case= TRUE)) %>% 
+  mutate(across(everything(), as.numeric))
+
+# Randomly sample a vector of 10 protein names
+random_sample <- sample(names(proteins_numeric), 10)
+```
+
+```{r}
+# Looking at distribution of raw values for the random sample of proteins
+
+# Plot 10 histograms; one histogram per randomly sampled protein
+proteins_numeric %>% 
+  select(random_sample) %>% 
+  pivot_longer(everything()) %>% 
+  ggplot(aes(x = value)) + geom_histogram() +
+  facet_wrap(vars(name))
+```
+
+```{r}
+# Looking at distribution of raw values for the random sample of proteins that are log-transformed
+
+  # Log-transform all proteins
+  proteins_numeric_log <- proteins_numeric %>%
+    mutate(across(everything(), ~ log(. + 1)))
+  
+  # Plot 10 histograms; one histogram per randomly sampled protein
+
+proteins_numeric_log %>% 
+  select(random_sample) %>% 
+  pivot_longer(everything()) %>% 
+  ggplot(aes(x = value)) + geom_histogram() +
+  facet_wrap(vars(name))
+```
+
+We used histograms to apply exploratory data analysis on 10 randomly sampled proteins. Viewing their distributions, we can see that all of the data is right-skewed. This indicates that there are some individual outliers that contain a higher level of that protein. The 'secreted frizzled-related protein' is the only protein in the random sample that has a bit more of a symmetrical distribution. After log-transforming that same random sample of proteins and viewing their distributions, the data is much more symmetrical. When working with data that is asymmetrical, applying a log-transformation can normalize the data, improve model fit, and reduce outliers.
 
 ### Methodlogical variations
 
