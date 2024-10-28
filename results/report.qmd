@@ -28,6 +28,7 @@ library(yardstick)
 library(kableExtra)
 
 # Read in the data
+setwd('../data')
 biomarker_raw <- read_csv('biomarker-raw.csv', show_col_types=FALSE)
 
 # Set seed for reproducibility
@@ -94,7 +95,8 @@ proteins_numeric_log %>%
 We used histograms to apply exploratory data analysis on 10 randomly sampled proteins. Viewing their distributions, we can see that all of the data is right-skewed. This indicates that there are some individual outliers that contain a higher level of that protein. The 'secreted frizzled-related protein' is the only protein in the random sample that has a bit more of a symmetrical distribution. After log-transforming that same random sample of proteins and viewing their distributions, the data is much more symmetrical. When working with data that is asymmetrical, applying a log-transformation can normalize the data, improve model fit, and reduce outliers.
 
 ```{r}
-load(file = 'report_files/biomarker-clean.RData')
+setwd('../data')
+load(file = 'biomarker-clean.RData')
 temp <- biomarker_clean %>% 
   filter(if_any(CHIP:PLXB2, ~ . ==3))
 
@@ -109,7 +111,7 @@ outlier_count <- temp %>%
 outlier_count %>% 
   ggplot(aes(x = group, y = outliers)) +
   geom_boxplot() +
-  labs(title = 'Outliers per group',
+  labs(title = 'Outliers per individual by group',
        x = 'Group',
        y = 'Number of outliers') 
 
@@ -126,6 +128,8 @@ outlier_count %>%
   head(10) %>% 
   kable()
 ```
+
+From there, we wanted to take a look at which group these individuals with outliers were coming from. To analyze this, we worked with any values that were equal to 3, since any outliers in the data were trimmed to 3. After visualizing the outlier count per group (ASD, TD) in a box plot and tabling the data, we see there is a total of 74 subjects with at least one outlier in the ASD group, and 77 in the TD group. However, when we visualise this with a box plot, we see there is a denser set of outliers in the TD class compared to the ASD class, which implies that there are more subjects in TD with over 25 outliers compared to ASD. TD also has a higher amount of total outliers as a group (ASD 813, TD 1161) and of the subjects with the top 10 most outliers, 7 are from the TD group and 3 are from the ASD group. In conclusion, while many subjects have at least 1 outlier, the subjects with a very high amount of outliers mostly belong to the TD group.
 
 ### Methodlogical variations
 
