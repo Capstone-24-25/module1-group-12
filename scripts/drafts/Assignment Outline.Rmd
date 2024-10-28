@@ -226,20 +226,27 @@ proteins_s2 <- rf_out$importance %>%
 ## LOGISTIC REGRESSION
 #######################
 
-# Average the ranks from t-tests and RF
+# Fuzzy intersection; pick top 15 
 proteins_s1_ranked <- data.frame(proteins_s1, rank_s1=c(1:length(proteins_s1)))
 proteins_s2_ranked <- data.frame(proteins_s2, rank_s2=c(1:length(proteins_s2)))
 
 colnames(proteins_s1_ranked) <- c("name", "rank_s1")
 colnames(proteins_s2_ranked) <- c("name", "rank_s2")
 
-proteins_ranked <- merge(proteins_s1_ranked, proteins_s2_ranked, by="name")
+# Set the number of top elements to select from each data frame
+n <- 10  # adjustable
 
-proteins_ranked <- proteins_ranked %>% mutate(avg=(rank_s1 + rank_s2) / 2) %>% 
-  arrange(avg)
+# Select the top n names from each ranked list
+top_s1 <- head(proteins_s1_ranked$name, n)
+top_s2 <- head(proteins_s2_ranked$name, n)
 
-# pull top significant proteins with fuzzy intersection (average of top ranks)
+# Combine the names and remove duplicates
+proteins_sstar <- unique(c(top_s1, top_s2))
+
+# pull top significant proteins with fuzzy intersection
 proteins_sstar <- proteins_ranked %>% pull(name)
+
+proteins_sstar_hard <- intersect(proteins_s1, proteins_s2)
 
 biomarker_sstar <- biomarker_clean %>%
   select(group, any_of(proteins_sstar)) %>%
