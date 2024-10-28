@@ -90,6 +90,40 @@ proteins_numeric_log %>%
   facet_wrap(vars(name))
 ```
 
+```{r}
+load(file = 'report_files/biomarker-clean.RData')
+temp <- biomarker_clean %>% 
+  filter(if_any(CHIP:PLXB2, ~ . ==3))
+
+
+outlier_count <- temp %>% 
+  rowwise() %>%
+  mutate(outliers = sum(c_across(CHIP:PLXB2) == 3)) %>% 
+  select(group, ados,outliers, everything())
+
+
+#box plot of number of outliers per subject in each group
+outlier_count %>% 
+  ggplot(aes(x = group, y = outliers)) +
+  geom_boxplot() +
+  labs(title = 'Outliers per group',
+       x = 'Group',
+       y = 'Number of outliers') 
+
+#total outliers per group and number of people with outliers per group
+outlier_count %>% 
+  group_by(group) %>%
+  summarise(total_out = sum(outliers), subjects_out = n()) %>% 
+  kable(label = 'Total Outliers and Number of Subjects with Outliers per Group')
+
+#top 10 subjects with most outliers
+outlier_count %>% 
+  arrange(desc(outliers)) %>% 
+  select(group, outliers) %>%
+  head(10) %>% 
+  kable()
+```
+
 We used histograms to apply exploratory data analysis on 10 randomly sampled proteins. Viewing their distributions, we can see that all of the data is right-skewed. This indicates that there are some individual outliers that contain a higher level of that protein. The 'secreted frizzled-related protein' is the only protein in the random sample that has a bit more of a symmetrical distribution. After log-transforming that same random sample of proteins and viewing their distributions, the data is much more symmetrical. When working with data that is asymmetrical, applying a log-transformation can normalize the data, improve model fit, and reduce outliers.
 
 ### Methodlogical variations
