@@ -28,6 +28,7 @@ library(yardstick)
 library(kableExtra)
 
 # Read in the data
+setwd('../data')
 biomarker_raw <- read_csv('biomarker-raw.csv', show_col_types=FALSE)
 
 # Set seed for reproducibility
@@ -92,7 +93,8 @@ proteins_numeric_log %>%
 We used histograms to apply exploratory data analysis on 10 randomly sampled proteins. Viewing their distributions, we can see that all of the data is right-skewed. This indicates that there are some individual outliers that contain a higher level of that protein. The 'secreted frizzled-related protein' is the only protein in the random sample that has a bit more of a symmetrical distribution. After log-transforming that same random sample of proteins and viewing their distributions, the data is much more symmetrical. When working with data that is asymmetrical, applying a log-transformation can normalize the data, improve model fit, and reduce outliers.
 
 ```{r}
-load(file = 'report_files/biomarker-clean.RData')
+setwd('../data')
+load(file = 'biomarker-clean.RData')
 temp <- biomarker_clean %>% 
   filter(if_any(CHIP:PLXB2, ~ . ==3))
 
