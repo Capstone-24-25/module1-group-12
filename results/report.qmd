@@ -243,11 +243,16 @@ proteins_sstar_hard
 ```
 
 ```{r}
+# panel from prior analysis
+proteins_sstar_prior <- c("DERM", "RELT", "IgD", "FSTL1")
+```
+
+```{r}
 ## LOGISTIC REGRESSION
 #######################
 
 biomarker_sstar <- biomarker_clean %>%
-  select(group, any_of(proteins_sstar_fuzzy)) %>%
+  select(group, any_of(proteins_sstar_hard)) %>%
   mutate(class = (group == 'ASD')) %>%
   select(-group)
 
