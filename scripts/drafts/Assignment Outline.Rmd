@@ -153,8 +153,6 @@ outlier_count %>%
 -   use a fuzzy intersection instead of a hard intersection to combine the sets of top predictive proteins across selection methods
 
 ```{r}
-load('~/GitHub/module1-group-12/data/biomarker-clean.RData')
-
 # Split the data into training and testing
 biomarker_clean_split <- biomarker_clean %>%
   initial_split(prop = 0.8)
