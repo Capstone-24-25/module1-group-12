@@ -131,7 +131,151 @@ From there, we wanted to take a look which groups these individuals with outlier
 
 ### Methodlogical variations
 
-Task 3
+To improve on the results of the prior analysis, we split the data into a training and testing set at the beginning, and ran the t-tests and Random Forest using only the testing set to find the top predictive proteins. Then, we evaluated the errors on the test set. This ensures that the logistic regression model is not overfit. After some experimentation, we found that the optimal choice for the number of top predictive proteins from each method was 30, as opposed to the previous 10. Furthermore, using a fuzzy intersection over a hard intersection allows for other potentially significant proteins to also be included into the panel. Our implementation involved picking the top 10 proteins from each list, combining them to form the new panel, and removing the duplicate proteins.
+
+```{r}
+# Split the data into training and testing; 80% training, 20% testing
+biomarker_clean_split <- biomarker_clean %>%
+  initial_split(prop = 0.8)
+
+biomarker_clean_train <- training(biomarker_clean_split)
+
+biomarker_clean_test <- testing(biomarker_clean_split)
+```
+
+```{r}
+# Finding our top 30 predictive proteins from each method
+
+## MULTIPLE TESTING
+####################
+
+# function to compute tests
+test_fn <- function(.df){
+  t_test(.df, 
+         formula = level ~ group,
+         order = c('ASD', 'TD'),
+         alternative = 'two-sided',
+         var.equal = F)
+}
+
+ttests_out <- biomarker_clean_train %>%
+  # drop ADOS score
+  select(-ados) %>%
+  # arrange in long format
+  pivot_longer(-group, 
+               names_to = 'protein', 
+               values_to = 'level') %>%
+  # nest by protein
+  nest(data = c(level, group)) %>% 
+  # compute t tests
+  mutate(ttest = map(data, test_fn)) %>%
+  unnest(ttest) %>%
+  # sort by p-value
+  arrange(p_value) %>%
+  # multiple testing correction
+  mutate(m = n(),
+         hm = log(m) + 1/(2*m) - digamma(1),
+         rank = row_number(),
+         p.adj = m*hm*p_value/rank)
+
+# select 30 significant proteins from t-test
+proteins_s1 <- ttests_out %>%
+  slice_min(p.adj, n = 30) %>%
+  pull(protein)
+
+## RANDOM FOREST
+##################
+
+# Using only the training set, store predictors and response separately
+predictors <- biomarker_clean_train %>%
+  select(-c(group, ados))
+
+response <- biomarker_clean_train %>% pull(group) %>% factor()
+
+# fit RF
+set.seed(101422)
+rf_out <- randomForest(x = predictors, 
+                       y = response, 
+                       ntree = 1000, 
+                       importance = T)
+
+# check errors
+rf_out$confusion
+
+# compute importance scores, selecting 30 significant proteins from RF
+proteins_s2 <- rf_out$importance %>% 
+  as_tibble() %>%
+  mutate(protein = rownames(rf_out$importance)) %>%
+  slice_max(MeanDecreaseGini, n = 30) %>%
+  pull(protein)
+```
+
+```{r}
+# Fuzzy intersection; pick top 10 from each list and combine 
+proteins_s1_ranked <- data.frame(proteins_s1, rank_s1=c(1:length(proteins_s1)))
+proteins_s2_ranked <- data.frame(proteins_s2, rank_s2=c(1:length(proteins_s2)))
+
+colnames(proteins_s1_ranked) <- c("name", "rank_s1")
+colnames(proteins_s2_ranked) <- c("name", "rank_s2")
+
+# Set the number of top proteins from each list
+n <- 10  # adjustable
+
+# Select the top proteins from each ranked list
+top_s1 <- head(proteins_s1_ranked$name, n)
+top_s2 <- head(proteins_s2_ranked$name, n)
+
+# Combine the names and remove duplicates
+proteins_sstar_fuzzy <- unique(c(top_s1, top_s2))
+
+# View the fuzzy intersection panel
+proteins_sstar_fuzzy
+```
+
+```{r}
+# hard intersection
+proteins_sstar_hard <- intersect(proteins_s1, proteins_s2)
+
+# View the hard intersection panel
+proteins_sstar_hard
+```
+
+```{r}
+## LOGISTIC REGRESSION
+#######################
+
+biomarker_sstar <- biomarker_clean %>%
+  select(group, any_of(proteins_sstar_fuzzy)) %>%
+  mutate(class = (group == 'ASD')) %>%
+  select(-group)
+
+# partition into training and test set
+set.seed(101422)
+biomarker_split <- biomarker_sstar %>%
+  initial_split(prop = 0.8)
+
+biomarker_training <- training(biomarker_split)
+
+biomarker_testing <- testing(biomarker_split)
+
+# fit logistic regression model to training set
+fit <- glm(class ~ ., 
+           data = biomarker_training, 
+           family = 'binomial')
+
+# evaluate errors on test set
+class_metrics <- metric_set(sensitivity, 
+                            specificity, 
+                            accuracy,
+                            roc_auc)
+
+biomarker_testing %>%
+  add_predictions(fit, type = 'response') %>%
+  mutate(est = as.factor(pred > 0.5), tr_c = as.factor(class)) %>%
+  class_metrics(estimate = est,
+              truth = tr_c, pred,
+              event_level = 'second')
+```
 
 ### Improved classifier
 
