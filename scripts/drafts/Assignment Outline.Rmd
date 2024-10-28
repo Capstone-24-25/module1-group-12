@@ -110,12 +110,12 @@ biomarker_clean <- read_csv('biomarker-raw.csv',
 
 ## NEW STUFF
 temp <- biomarker_clean %>% 
-  filter(if_any(CHIP:PLXB2, ~ . ==3))
+  filter(if_any(CHIP:PLXB2, ~ . == 3) | if_any(CHIP:PLXB2, ~ . == -3) )
 
 
 outlier_count <- temp %>% 
   rowwise() %>%
-  mutate(outliers = sum(c_across(CHIP:PLXB2) == 3)) %>% 
+  mutate(outliers = sum(c_across(CHIP:PLXB2) == 3) + sum(c_across(CHIP:PLXB2) == -3)) %>% 
   select(group, ados,outliers, everything())
 
 
