@@ -247,6 +247,7 @@ proteins_sstar <- unique(c(top_s1, top_s2))
 # pull top significant proteins with fuzzy intersection
 proteins_sstar <- proteins_ranked %>% pull(name)
 
+# hard intersection
 proteins_sstar_hard <- intersect(proteins_s1, proteins_s2)
 
 biomarker_sstar <- biomarker_clean %>%
