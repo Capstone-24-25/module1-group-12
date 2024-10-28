@@ -26,6 +26,7 @@ library(tidymodels)
 library(modelr)
 library(yardstick)
 library(kableExtra)
+library(knitr)
 
 # Read in the data
 setwd('../data')
@@ -73,7 +74,8 @@ proteins_numeric %>%
   select(random_sample) %>% 
   pivot_longer(everything()) %>% 
   ggplot(aes(x = value)) + geom_histogram() +
-  facet_wrap(vars(name))
+  facet_wrap(vars(name))+
+  labs(title = 'Distribution of Raw Values for Protein')
 ```
 
 ```{r}
@@ -89,10 +91,13 @@ proteins_numeric_log %>%
   select(random_sample) %>% 
   pivot_longer(everything()) %>% 
   ggplot(aes(x = value)) + geom_histogram() +
-  facet_wrap(vars(name))
+  facet_wrap(vars(name))+
+  labs(title = 'Distribution of Log-Transformed Values')
 ```
 
 We used histograms to apply exploratory data analysis on 10 randomly sampled proteins. Viewing their distributions, we can see that all of the data is right-skewed. This indicates that there are some individual outliers that contain a higher level of that protein. The 'secreted frizzled-related protein' is the only protein in the random sample that has a bit more of a symmetrical distribution. After log-transforming that same random sample of proteins and viewing their distributions, the data is much more symmetrical. When working with data that is asymmetrical, applying a log-transformation can normalize the data, improve model fit, and reduce outliers.
+
+From there, we wanted to take a look at which group these individuals with outliers were coming from. To analyze this, we worked with any values that were equal to 3 or -3, since any outliers in the data were trimmed to those values. After visualizing the outlier count per group (ASD, TD) in a box plot and tabling the data, we see there is a total of 75 subjects with at least one outlier in the ASD group, and 77 in the TD group. However, when we visualise this with a box plot, we see there is a denser set of outliers in the TD class compared to the ASD class, which implies that there are more subjects in TD with a high amount of outliers compared to ASD. TD also has a higher amount of total outliers as a group (ASD 1007, TD 1372) and of the subjects with the top 10 most outliers, 7 are from the TD group and 3 are from the ASD group, with the top 2 spots from the TD group. In conclusion, while many subjects have at least 1 outlier, the subjects with a very high amount of outliers mostly belong to the TD group and the subject with the msot outliers is in the TD group.
 
 ```{r}
 setwd('../data')
@@ -119,17 +124,16 @@ outlier_count %>%
 outlier_count %>% 
   group_by(group) %>%
   summarise(total_out = sum(outliers), subjects_out = n()) %>% 
-  kable(label = 'Total Outliers and Number of Subjects with Outliers per Group')
+  kable(col.names = c('Group', 'Total Outliers', 'Number of Subjects'), caption = 'Total Outlier and Number of Subjects with Outliers per Group')
 
 #top 10 subjects with most outliers
 outlier_count %>% 
   arrange(desc(outliers)) %>% 
   select(group, outliers) %>%
   head(10) %>% 
-  kable()
+  kbl(caption = 'Top 10 Subjects with Most Outliers')
 ```
 
-From there, we wanted to take a look at which group these individuals with outliers were coming from. To analyze this, we worked with protein values that were equal to 3 or -3, since any outliers in the data were trimmed to those values. After visualizing the outlier count per group (ASD, TD) in a box plot and tabling the data, we see there is a total of 75 ASD subjects with at least one outlier and 77 subjects in the TD group. However, when we visualize this with a box plot, we see there is a denser set of outliers in the TD class compared to the ASD class, which implies that there are more subjects in TD with a high amount of outliers compared to ASD. TD also has a higher amount of total outliers as a group (ASD 1007, TD 1372). When displaying the top 10 most outliers, 7 of the top 10 are from the TD group and 3 are from the ASD group, with the top 2 spots from the TD group. In conclusion, while many subjects have at least 1 outlier, the subjects with a very high amount of outliers mostly belong to the TD group and the subject with the most outliers is in the TD group.
 
 ### Methodlogical variations
 
@@ -248,40 +252,64 @@ proteins_sstar_prior <- c("DERM", "RELT", "IgD", "FSTL1")
 ```
 
 ```{r}
-## LOGISTIC REGRESSION
-#######################
+# Run the Logistic regression for all 3 panels
 
-biomarker_sstar <- biomarker_clean %>%
-  select(group, any_of(proteins_sstar_hard)) %>%
-  mutate(class = (group == 'ASD')) %>%
-  select(-group)
+# Define the list of vectors to iterate through
+protein_vectors <- list(
+  hard = proteins_sstar_hard,
+  fuzzy = proteins_sstar_fuzzy,
+  prior = proteins_sstar_prior
+)
 
-# partition into training and test set
-set.seed(101422)
-biomarker_split <- biomarker_sstar %>%
-  initial_split(prop = 0.8)
+# Initialize a list to store kable objects for each panel
+kable_results <- list()
 
-biomarker_training <- training(biomarker_split)
 
-biomarker_testing <- testing(biomarker_split)
+for (name in names(protein_vectors)) {
+  
 
-# fit logistic regression model to training set
-fit <- glm(class ~ ., 
-           data = biomarker_training, 
-           family = 'binomial')
+  current_proteins <- protein_vectors[[name]]
+  
+  # Preprocess data and partition
+  biomarker_sstar <- biomarker_clean %>%
+    select(group, any_of(current_proteins)) %>%
+    mutate(class = (group == 'ASD')) %>%
+    select(-group)
+  
+  biomarker_split <- biomarker_sstar %>%
+    initial_split(prop = 0.8)
 
-# evaluate errors on test set
-class_metrics <- metric_set(sensitivity, 
-                            specificity, 
-                            accuracy,
-                            roc_auc)
+  biomarker_training <- training(biomarker_split)
+  biomarker_testing <- testing(biomarker_split)
+  
+  # Fit logistic regression model
+  fit <- glm(class ~ ., 
+             data = biomarker_training, 
+             family = 'binomial')
+  
+  # Evaluate errors on test set
+  class_metrics <- metric_set(sensitivity, 
+                              specificity, 
+                              accuracy,
+                              roc_auc)
+  
+  # Calculate metrics and create kable for each protein vector
+  metrics_result <- biomarker_testing %>%
+    add_predictions(fit, type = 'response') %>%
+    mutate(est = as.factor(pred > 0.5), tr_c = as.factor(class)) %>%
+    class_metrics(estimate = est,
+                  truth = tr_c, pred,
+                  event_level = 'second')
+  
+  # Store the kable object
+  kable_results[[name]] <- kable(metrics_result, caption = paste("Metrics for", name, "proteins"))
+}
 
-biomarker_testing %>%
-  add_predictions(fit, type = 'response') %>%
-  mutate(est = as.factor(pred > 0.5), tr_c = as.factor(class)) %>%
-  class_metrics(estimate = est,
-              truth = tr_c, pred,
-              event_level = 'second')
+```
+
+```{r}
+# Hard intersection panel results
+kable_results[1]
 ```
 
 ### Improved classifier
