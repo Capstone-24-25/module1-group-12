@@ -305,8 +305,8 @@ for (name in names(protein_vectors)) {
 ```
 
 ```{r}
-# Hard intersection panel results
-kable_results[1]
+# Prior intersection panel results
+kable_results[3]
 ```
 
 ### Improved classifier
