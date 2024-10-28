@@ -24,11 +24,11 @@ library(modelr)
 library(yardstick)
 library(kableExtra)
 
-# Set seed for reproducibility
-set.seed(123)
-
 # Read in the data
 biomarker_raw <- read_csv('biomarker-raw.csv', show_col_types=FALSE)
+
+# Set seed for reproducibility
+set.seed(123)
 ```
 
 ```{r}
@@ -67,6 +67,9 @@ proteins_numeric_log %>%
   ggplot(aes(x = value)) + geom_histogram() +
   facet_wrap(vars(name))
 ```
+
+  We used histograms to apply exploratory data analysis on 10 randomly sampled proteins. Viewing their distributions, we can see that all of the data is right-skewed. This indicates that there are some individual outliers that contain a higher level of that protein. The 'secreted frizzled-related protein' is the only protein in the random sample that has a bit more of a symmetrical distribution. After log-transforming that same random sample of proteins and viewing their distributions, the data is much more symmetrical. When working with data that is asymmetrical, applying a log-transformation can normalize the data, improve model fit, and reduce outliers.
+
 
 2.  Temporarily remove the outlier trimming from preprocessing and do some exploratory analysis of outlying values. Are there specific subjects (not values) that seem to be outliers? If so, are outliers more frequent in one group or the other? (Hint: consider tabluating the number of outlying values per subject.)
 
