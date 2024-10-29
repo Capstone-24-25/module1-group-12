@@ -311,28 +311,28 @@ for (name in names(protein_vectors)) {
 
 ```{r}
 # Prior panel results
-kable_results[3]
+kable_results[[3]]
 ```
 
 The metric we are interested in is the accuracy of the logistic regression model. Note that the prior analysis did not partition the data into training and testing sets before running the t.tests and Random Forest. Because of this, the model from the prior was likely overfit, which is why it produced an impressive accuracy score of about 83.9%. After partitioning the data, it performed significantly worse on the testing set. We observe that the accuracy is about 67.7%. This indicates that the prior panel is can classify ASD correctly about 67.7% of the time on the testing set.
 
 ```{r}
 # Fuzzy intersection panel results
-kable_results[2]
+kable_results[[2]]
 ```
 
 When using a fuzzy intersection, the accuracy increased slightly, with a score of about 77.4%, when compared to the prior panel. This indicates that the fuzzy intersection panel is can classify ASD correctly only about 77.4% of the time on the testing set.
 
 ```{r}
 # Hard intersection panel results
-kable_results[1]
+kable_results[[1]]
 ```
 
 When using a hard intersection, the accuracy increased as well, with a score of about 70.9% when compared to the prior panel. This indicates that the hard intersection panel is can classify ASD correctly only about 70.9% of the time on the testing set.
 
 ### Improved classifier
 
-After running a logistic regression on the prior, fuzzy intersection, and hard intersection panels, we improved the accuracy of the prior analysis by about 10%. The panel is the following.
+After running a logistic regression on the prior, fuzzy intersection, and hard intersection panels, we improved the accuracy of the prior analysis by about 10% with the hard intersection. The panel is the following.
 
 ```{r}
 proteins_sstar_hard
@@ -340,7 +340,7 @@ proteins_sstar_hard
 
 This improvement of accuracy is mainly due to the splitting of the training and testing data before running the t-test and random forest to find significant proteins. The prior analysis likely overfit the model due to the lack of any splitting.
 
-We have also achieved similar accuracy, at 70.9% (compared to 67.7%) with a fuzzy intersection. The panel is the following.
+We have also achieved similar accuracy to the prior, at 70.9% (compared to 67.7%) with a fuzzy intersection. The panel is the following.
 
 ```{r}
 proteins_sstar_fuzzy
