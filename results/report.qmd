@@ -258,8 +258,8 @@ set.seed(123)
 
 # Define the list of vectors to iterate through
 protein_vectors <- list(
-  hard = proteins_sstar_hard,
-  fuzzy = proteins_sstar_fuzzy,
+  hard_intersection = proteins_sstar_hard,
+  fuzzy_intersection = proteins_sstar_fuzzy,
   prior = proteins_sstar_prior
 )
 
