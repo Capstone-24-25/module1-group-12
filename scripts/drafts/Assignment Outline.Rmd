@@ -244,6 +244,8 @@ top_s2 <- head(proteins_s2_ranked$name, n)
 # Combine the names and remove duplicates
 proteins_sstar <- unique(c(top_s1, top_s2))
 
+proteins_ranked <- merge(proteins_s1_ranked, proteins_s2_ranked, by="name")
+
 # pull top significant proteins with fuzzy intersection
 proteins_sstar <- proteins_ranked %>% pull(name)
 

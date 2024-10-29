@@ -196,7 +196,6 @@ predictors <- biomarker_clean_train %>%
 response <- biomarker_clean_train %>% pull(group) %>% factor()
 
 # fit RF
-set.seed(101422)
 rf_out <- randomForest(x = predictors, 
                        y = response, 
                        ntree = 1000, 
@@ -305,9 +304,25 @@ for (name in names(protein_vectors)) {
 ```
 
 ```{r}
-# Prior intersection panel results
+# Prior panel results
 kable_results[3]
 ```
+
+The metric we are interested in is the accuracy of the logistic regression model. From the in-class analysis, we observe that the accuracy is about 83.9%. This indicates that the prior panel is can classify ASD correctly about 83.9% of the time on the testing set.
+
+```{r}
+# Fuzzy intersection panel results
+kable_results[2]
+```
+
+When using a fuzzy intersection, the accuracy decreased significantly, with a score of about 67.7%, when compared to the prior panel. This indicates that the fuzzy intersection panel is can classify ASD correctly only about 67.7% of the time on the testing set.
+
+```{r}
+# Hard intersection panel results
+kable_results[1]
+```
+
+When using a hard intersection, the accuracy decreased as well, with a score of about 77.4% when compared to the prior panel. This indicates that the hard intersection panel is can classify ASD correctly only about 77.4% of the time on the testing set.
 
 ### Improved classifier
 
