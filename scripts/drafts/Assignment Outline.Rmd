@@ -195,7 +195,7 @@ ttests_out <- biomarker_clean_train %>%
 
 # select significant proteins
 proteins_s1 <- ttests_out %>%
-  slice_min(p.adj, n = 30) %>%
+  slice_min(p.adj, n = 25) %>%
   pull(protein)
 
 ## RANDOM FOREST
@@ -208,7 +208,6 @@ predictors <- biomarker_clean_train %>%
 response <- biomarker_clean_train %>% pull(group) %>% factor()
 
 # fit RF
-set.seed(101422)
 rf_out <- randomForest(x = predictors, 
                        y = response, 
                        ntree = 1000, 
@@ -221,7 +220,7 @@ rf_out$confusion
 proteins_s2 <- rf_out$importance %>% 
   as_tibble() %>%
   mutate(protein = rownames(rf_out$importance)) %>%
-  slice_max(MeanDecreaseGini, n = 30) %>%
+  slice_max(MeanDecreaseGini, n = 25) %>%
   pull(protein)
 
 ## LOGISTIC REGRESSION
@@ -244,6 +243,8 @@ top_s2 <- head(proteins_s2_ranked$name, n)
 # Combine the names and remove duplicates
 proteins_sstar <- unique(c(top_s1, top_s2))
 
+proteins_ranked <- merge(proteins_s1_ranked, proteins_s2_ranked, by="name")
+
 # pull top significant proteins with fuzzy intersection
 proteins_sstar <- proteins_ranked %>% pull(name)
 
@@ -256,7 +257,6 @@ biomarker_sstar <- biomarker_clean %>%
   select(-group)
 
 # partition into training and test set
-set.seed(101422)
 biomarker_split <- biomarker_sstar %>%
   initial_split(prop = 0.8)
 

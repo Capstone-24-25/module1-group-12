@@ -74,7 +74,8 @@ proteins_numeric %>%
   select(random_sample) %>% 
   pivot_longer(everything()) %>% 
   ggplot(aes(x = value)) + geom_histogram() +
-  facet_wrap(vars(name))
+  facet_wrap(vars(name))+
+  labs(title = 'Distribution of Raw Values for Protein')
 ```
 
 ```{r}
@@ -90,10 +91,13 @@ proteins_numeric_log %>%
   select(random_sample) %>% 
   pivot_longer(everything()) %>% 
   ggplot(aes(x = value)) + geom_histogram() +
-  facet_wrap(vars(name))
+  facet_wrap(vars(name))+
+  labs(title = 'Distribution of Log-Transformed Values')
 ```
 
 We used histograms to apply exploratory data analysis on 10 randomly sampled proteins. Viewing their distributions, we can see that all of the data is right-skewed. This indicates that there are some individual outliers that contain a higher level of that protein. The 'secreted frizzled-related protein' is the only protein in the random sample that has a bit more of a symmetrical distribution. After log-transforming that same random sample of proteins and viewing their distributions, the data is much more symmetrical. When working with data that is asymmetrical, applying a log-transformation can normalize the data, improve model fit, and reduce outliers.
+
+From there, we wanted to take a look at which group these individuals with outliers were coming from. To analyze this, we worked with any values that were equal to 3 or -3, since any outliers in the data were trimmed to those values. After visualizing the outlier count per group (ASD, TD) in a box plot and tabling the data, we see there is a total of 75 subjects with at least one outlier in the ASD group, and 77 in the TD group. However, when we visualise this with a box plot, we see there is a denser set of outliers in the TD class compared to the ASD class, which implies that there are more subjects in TD with a high amount of outliers compared to ASD. TD also has a higher amount of total outliers as a group (ASD 1007, TD 1372) and of the subjects with the top 10 most outliers, 7 are from the TD group and 3 are from the ASD group, with the top 2 spots from the TD group. In conclusion, while many subjects have at least 1 outlier, the subjects with a very high amount of outliers mostly belong to the TD group and the subject with the msot outliers is in the TD group.
 
 ```{r}
 setwd('../data')
@@ -120,21 +124,19 @@ outlier_count %>%
 outlier_count %>% 
   group_by(group) %>%
   summarise(total_out = sum(outliers), subjects_out = n()) %>% 
-  kable(label = 'Total Outliers and Number of Subjects with Outliers per Group')
+  kable(col.names = c('Group', 'Total Outliers', 'Number of Subjects'), caption = 'Total Outlier and Number of Subjects with Outliers per Group')
 
 #top 10 subjects with most outliers
 outlier_count %>% 
   arrange(desc(outliers)) %>% 
   select(group, outliers) %>%
   head(10) %>% 
-  kable()
+  kbl(caption = 'Top 10 Subjects with Most Outliers')
 ```
-
-From there, we wanted to take a look at which group these individuals with outliers were coming from. To analyze this, we worked with protein values that were equal to 3 or -3, since any outliers in the data were trimmed to those values. After visualizing the outlier count per group (ASD, TD) in a box plot and tabling the data, we see there is a total of 75 ASD subjects with at least one outlier and 77 subjects in the TD group. However, when we visualize this with a box plot, we see there is a denser set of outliers in the TD class compared to the ASD class, which implies that there are more subjects in TD with a high amount of outliers compared to ASD. TD also has a higher amount of total outliers as a group (ASD 1007, TD 1372). When displaying the top 10 most outliers, 7 of the top 10 are from the TD group and 3 are from the ASD group, with the top 2 spots from the TD group. In conclusion, while many subjects have at least 1 outlier, the subjects with a very high amount of outliers mostly belong to the TD group and the subject with the most outliers is in the TD group.
 
 ### Methodlogical variations
 
-To improve on the results of the prior analysis, we split the data into a training and testing set at the beginning, and ran the t-tests and Random Forest using only the testing set to find the top predictive proteins. Then, we evaluated the errors on the test set. This ensures that the logistic regression model is not overfit. After some experimentation, we found that the optimal choice for the number of top predictive proteins from each method was 30, as opposed to the previous 10. Furthermore, using a fuzzy intersection over a hard intersection allows for other potentially significant proteins to also be included into the panel. Our implementation involved picking the top 10 proteins from each list, combining them to form the new panel, and removing the duplicate proteins.
+To improve on the results of the prior analysis, we split the data into a training and testing set at the beginning, and ran the t-tests and Random Forest using only the testing set to find the top predictive proteins. Then, we evaluated the errors on the test set. This ensures that the logistic regression model is not overfit. After some experimentation, we found that the optimal choice for the number of top predictive proteins from each method was 20, as opposed to the previous 10. Furthermore, using a fuzzy intersection over a hard intersection allows for other potentially significant proteins to also be included into the panel. Our implementation involved picking the top 10 proteins from each list, combining them to form the new panel, and removing the duplicate proteins.
 
 ```{r}
 # Split the data into training and testing; 80% training, 20% testing
@@ -147,6 +149,8 @@ biomarker_clean_test <- testing(biomarker_clean_split)
 ```
 
 ```{r}
+# Set a seed for reproducibility
+set.seed(123)
 # Finding our top 30 predictive proteins from each method
 
 ## MULTIPLE TESTING
@@ -183,7 +187,7 @@ ttests_out <- biomarker_clean_train %>%
 
 # select 30 significant proteins from t-test
 proteins_s1 <- ttests_out %>%
-  slice_min(p.adj, n = 30) %>%
+  slice_min(p.adj, n = 20) %>%
   pull(protein)
 
 ## RANDOM FOREST
@@ -196,7 +200,6 @@ predictors <- biomarker_clean_train %>%
 response <- biomarker_clean_train %>% pull(group) %>% factor()
 
 # fit RF
-set.seed(101422)
 rf_out <- randomForest(x = predictors, 
                        y = response, 
                        ntree = 1000, 
@@ -209,7 +212,7 @@ rf_out$confusion
 proteins_s2 <- rf_out$importance %>% 
   as_tibble() %>%
   mutate(protein = rownames(rf_out$importance)) %>%
-  slice_max(MeanDecreaseGini, n = 30) %>%
+  slice_max(MeanDecreaseGini, n = 20) %>%
   pull(protein)
 ```
 
@@ -249,12 +252,14 @@ proteins_sstar_prior <- c("DERM", "RELT", "IgD", "FSTL1")
 ```
 
 ```{r}
+# Set a seed for reproducibility
+set.seed(123)
 # Run the Logistic regression for all 3 panels
 
 # Define the list of vectors to iterate through
 protein_vectors <- list(
-  hard = proteins_sstar_hard,
-  fuzzy = proteins_sstar_fuzzy,
+  hard_intersection = proteins_sstar_hard,
+  fuzzy_intersection = proteins_sstar_fuzzy,
   prior = proteins_sstar_prior
 )
 
@@ -305,10 +310,38 @@ for (name in names(protein_vectors)) {
 ```
 
 ```{r}
-# Prior intersection panel results
-kable_results[3]
+# Prior panel results
+kable_results[[3]]
 ```
+
+The metric we are interested in is the accuracy of the logistic regression model. Note that the prior analysis did not partition the data into training and testing sets before running the t.tests and Random Forest. Because of this, the model from the prior was likely overfit, which is why it produced an impressive accuracy score of about 83.9%. After partitioning the data, it performed significantly worse on the testing set. We observe that the accuracy is about 67.7%. This indicates that the prior panel is can classify ASD correctly about 67.7% of the time on the testing set.
+
+```{r}
+# Fuzzy intersection panel results
+kable_results[[2]]
+```
+
+When using a fuzzy intersection, the accuracy increased slightly, with a score of about 77.4%, when compared to the prior panel. This indicates that the fuzzy intersection panel is can classify ASD correctly only about 77.4% of the time on the testing set.
+
+```{r}
+# Hard intersection panel results
+kable_results[[1]]
+```
+
+When using a hard intersection, the accuracy increased as well, with a score of about 70.9% when compared to the prior panel. This indicates that the hard intersection panel is can classify ASD correctly only about 70.9% of the time on the testing set.
 
 ### Improved classifier
 
-Task 4
+After running a logistic regression on the prior, fuzzy intersection, and hard intersection panels, we improved the accuracy of the prior analysis by about 10% with the hard intersection. The panel is the following.
+
+```{r}
+proteins_sstar_hard
+```
+
+This improvement of accuracy is mainly due to the splitting of the training and testing data before running the t-test and random forest to find significant proteins. The prior analysis likely overfit the model due to the lack of any splitting.
+
+We have also achieved similar accuracy to the prior, at 70.9% (compared to 67.7%) with a fuzzy intersection. The panel is the following.
+
+```{r}
+proteins_sstar_fuzzy
+```
