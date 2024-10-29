@@ -136,7 +136,7 @@ outlier_count %>%
 
 ### Methodlogical variations
 
-To improve on the results of the prior analysis, we split the data into a training and testing set at the beginning, and ran the t-tests and Random Forest using only the testing set to find the top predictive proteins. Then, we evaluated the errors on the test set. This ensures that the logistic regression model is not overfit. After some experimentation, we found that the optimal choice for the number of top predictive proteins from each method was 30, as opposed to the previous 10. Furthermore, using a fuzzy intersection over a hard intersection allows for other potentially significant proteins to also be included into the panel. Our implementation involved picking the top 10 proteins from each list, combining them to form the new panel, and removing the duplicate proteins.
+To improve on the results of the prior analysis, we split the data into a training and testing set at the beginning, and ran the t-tests and Random Forest using only the testing set to find the top predictive proteins. Then, we evaluated the errors on the test set. This ensures that the logistic regression model is not overfit. After some experimentation, we found that the optimal choice for the number of top predictive proteins from each method was 20, as opposed to the previous 10. Furthermore, using a fuzzy intersection over a hard intersection allows for other potentially significant proteins to also be included into the panel. Our implementation involved picking the top 10 proteins from each list, combining them to form the new panel, and removing the duplicate proteins.
 
 ```{r}
 # Split the data into training and testing; 80% training, 20% testing
