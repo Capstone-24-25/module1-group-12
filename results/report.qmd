@@ -149,6 +149,8 @@ biomarker_clean_test <- testing(biomarker_clean_split)
 ```
 
 ```{r}
+# Set a seed for reproducibility
+set.seed(123)
 # Finding our top 30 predictive proteins from each method
 
 ## MULTIPLE TESTING
@@ -185,7 +187,7 @@ ttests_out <- biomarker_clean_train %>%
 
 # select 30 significant proteins from t-test
 proteins_s1 <- ttests_out %>%
-  slice_min(p.adj, n = 30) %>%
+  slice_min(p.adj, n = 20) %>%
   pull(protein)
 
 ## RANDOM FOREST
@@ -210,7 +212,7 @@ rf_out$confusion
 proteins_s2 <- rf_out$importance %>% 
   as_tibble() %>%
   mutate(protein = rownames(rf_out$importance)) %>%
-  slice_max(MeanDecreaseGini, n = 30) %>%
+  slice_max(MeanDecreaseGini, n = 20) %>%
   pull(protein)
 ```
 
@@ -250,6 +252,8 @@ proteins_sstar_prior <- c("DERM", "RELT", "IgD", "FSTL1")
 ```
 
 ```{r}
+# Set a seed for reproducibility
+set.seed(123)
 # Run the Logistic regression for all 3 panels
 
 # Define the list of vectors to iterate through
@@ -310,22 +314,34 @@ for (name in names(protein_vectors)) {
 kable_results[3]
 ```
 
-The metric we are interested in is the accuracy of the logistic regression model. From the in-class analysis, we observe that the accuracy is about 83.9%. This indicates that the prior panel is can classify ASD correctly about 83.9% of the time on the testing set.
+The metric we are interested in is the accuracy of the logistic regression model. Note that the prior analysis did not partition the data into training and testing sets before running the t.tests and Random Forest. Because of this, the model from the prior was likely overfit, which is why it produced an impressive accuracy score of about 83.9%. After partitioning the data, it performed significantly worse on the testing set. We observe that the accuracy is about 67.7%. This indicates that the prior panel is can classify ASD correctly about 67.7% of the time on the testing set.
 
 ```{r}
 # Fuzzy intersection panel results
 kable_results[2]
 ```
 
-When using a fuzzy intersection, the accuracy decreased significantly, with a score of about 67.7%, when compared to the prior panel. This indicates that the fuzzy intersection panel is can classify ASD correctly only about 67.7% of the time on the testing set.
+When using a fuzzy intersection, the accuracy increased slightly, with a score of about 77.4%, when compared to the prior panel. This indicates that the fuzzy intersection panel is can classify ASD correctly only about 77.4% of the time on the testing set.
 
 ```{r}
 # Hard intersection panel results
 kable_results[1]
 ```
 
-When using a hard intersection, the accuracy decreased as well, with a score of about 77.4% when compared to the prior panel. This indicates that the hard intersection panel is can classify ASD correctly only about 77.4% of the time on the testing set.
+When using a hard intersection, the accuracy increased as well, with a score of about 70.9% when compared to the prior panel. This indicates that the hard intersection panel is can classify ASD correctly only about 70.9% of the time on the testing set.
 
 ### Improved classifier
 
-Task 4
+After running a logistic regression on the prior, fuzzy intersection, and hard intersection panels, we improved the accuracy of the prior analysis by about 10%. The panel is the following.
+
+```{r}
+proteins_sstar_hard
+```
+
+This improvement of accuracy is mainly due to the splitting of the training and testing data before running the t-test and random forest to find significant proteins. The prior analysis likely overfit the model due to the lack of any splitting.
+
+We have also achieved similar accuracy, at 70.9% (compared to 67.7%) with a fuzzy intersection. The panel is the following.
+
+```{r}
+proteins_sstar_fuzzy
+```
