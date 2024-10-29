@@ -208,7 +208,6 @@ predictors <- biomarker_clean_train %>%
 response <- biomarker_clean_train %>% pull(group) %>% factor()
 
 # fit RF
-set.seed(101422)
 rf_out <- randomForest(x = predictors, 
                        y = response, 
                        ntree = 1000, 
@@ -258,7 +257,6 @@ biomarker_sstar <- biomarker_clean %>%
   select(-group)
 
 # partition into training and test set
-set.seed(101422)
 biomarker_split <- biomarker_sstar %>%
   initial_split(prop = 0.8)
 
