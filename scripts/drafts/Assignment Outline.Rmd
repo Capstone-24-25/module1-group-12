@@ -195,7 +195,7 @@ ttests_out <- biomarker_clean_train %>%
 
 # select significant proteins
 proteins_s1 <- ttests_out %>%
-  slice_min(p.adj, n = 30) %>%
+  slice_min(p.adj, n = 25) %>%
   pull(protein)
 
 ## RANDOM FOREST
@@ -220,7 +220,7 @@ rf_out$confusion
 proteins_s2 <- rf_out$importance %>% 
   as_tibble() %>%
   mutate(protein = rownames(rf_out$importance)) %>%
-  slice_max(MeanDecreaseGini, n = 30) %>%
+  slice_max(MeanDecreaseGini, n = 25) %>%
   pull(protein)
 
 ## LOGISTIC REGRESSION
