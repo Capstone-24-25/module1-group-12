@@ -38,7 +38,7 @@ set.seed(123)
 
 ## Abstract
 
-Write a brief one-paragraph abstract that describes the contents of your write-up.
+This report studies potential biological markers in serum samples for identifying autism spectrum disorder (ASD) in boys from the age of 18 months to 8 years old. We investigated this through the use of datasets containing protein measurements from 76 ASD and 78 typically developing (TD) boys. Three analytical methods were employed: correlation analysis, t-tests, and a random forest model. The highest-ranking “core” proteins from each method were compiled into two panels using both “fuzzy” and “hard” intersections. Both panels’ performance were tested using logistic regression, with accuracy results indicating an improvement over prior analyses by about 10%. Findings show that our methods offer a predictive improvement and underscores the importance of methodical preprocessing and analysis in biomarker studies.
 
 ## Dataset
 
