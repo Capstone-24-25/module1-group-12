@@ -48,7 +48,19 @@ We are working with two datasets, `biomarker-raw.csv` and `biomarker-clean.RData
 
 ## Summary of published analysis
 
-Summarize the methodology of the paper in 1-3 paragraphs. You need not explain the methods in depth as we did in class; just indicate what methods were used and how they were combined. If possible, include a diagram that depicts the methodological design. (Quarto has support for [GraphViz and Mermaid flowcharts](https://quarto.org/docs/authoring/diagrams.html).) Provide key results: the proteins selected for the classifier and the estimated accuracy.
+Three statistical analysis approaches were used to determine a 'panel' of proteins that are most valuable to decide if a subject of the age of 18 months to 8 years of age will be classified as `ASD` or `TD`.
+
+We first mention the use of the **correlation** approach as our first method, which collects the correlation values between each protein and the ADOS (Autism Diagnostic Observation Schedule) - which is the measure of ASD symptom severity. To determine the most important relationships, the 10 largest values in magnitude are then selected to be the 'pre-panel' of predictive proteins. Next approach is using **t-tests** to determine the significance between each protein for each group. This is done by finding the sample mean of the protein values for each group and comparing to see if the sample means are indifferent. Essentially, we are testing if $\bar\mu_{TD_{1}} - \bar\mu_{ASD_{1}} = 0$ for an arbitrary protein, for each group. We can discover the most significant values by evaluating the p-values for each test. Those with the lowest values are accepted to be the most critical for our panel from the t-test approach. Lastly, we use a **random forest** model which not only delivers a model for testing, but can help determine feature (or variable) importance, which is ideal for our situation of selecting the most important proteins. After performing each model, we collected the top predictive proteins from all three methods, and used a 'fuzzy' intersection along with a 'hard' to find what all methods find to be important, denoting these as 'core' proteins. After collecting the 'core' proteins, we then run a logistic regression model with a classification setting to output a group. The results for both intersections are displayed below.
+
+The '**fuzzy'** intersection of the 3 methods posed a panel consisting of:
+
+**Calcineurin, MAPK2, (CXCL16, soluble), DERM, RELT, IGFBP-1, MAPK14, ALCAM, Notch 1, Fas, soluble, ERBB1, IgD, eIF-4H, MMP-2.**
+
+Using a '**hard**' intersection with the R function `instersect`, we have the following group of proteins:
+
+**MAPK2, DERM, RELT, IGFBP-1, MAPK14, ALCAM, Notch 1, (gp130, soluble), IgD, PPID, Coagulation Factor IX.**
+
+The first intersection had an estimated accuracy of \~ 67.7% on the testing set, and the hard interestion had an estimated accuracy of \~ 70.9% on the testing set.
 
 ## Findings
 
@@ -97,7 +109,7 @@ proteins_numeric_log %>%
 
 We used histograms to apply exploratory data analysis on 10 randomly sampled proteins. Viewing their distributions, we can see that all of the data is right-skewed. This indicates that there are some individual outliers that contain a higher level of that protein. The 'secreted frizzled-related protein' is the only protein in the random sample that has a bit more of a symmetrical distribution. After log-transforming that same random sample of proteins and viewing their distributions, the data is much more symmetrical. When working with data that is asymmetrical, applying a log-transformation can normalize the data, improve model fit, and reduce outliers.
 
-From there, we wanted to take a look at which group these individuals with outliers were coming from. To analyze this, we worked with any values that were equal to 3 or -3, since any outliers in the data were trimmed to those values. After visualizing the outlier count per group (ASD, TD) in a box plot and tabling the data, we see there is a total of 75 subjects with at least one outlier in the ASD group, and 77 in the TD group. However, when we visualise this with a box plot, we see there is a denser set of outliers in the TD class compared to the ASD class, which implies that there are more subjects in TD with a high amount of outliers compared to ASD. TD also has a higher amount of total outliers as a group (ASD 1007, TD 1372) and of the subjects with the top 10 most outliers, 7 are from the TD group and 3 are from the ASD group, with the top 2 spots from the TD group. In conclusion, while many subjects have at least 1 outlier, the subjects with a very high amount of outliers mostly belong to the TD group and the subject with the msot outliers is in the TD group.
+From there, we wanted to take a look at which group these individuals with outliers were coming from. To analyze this, we worked with any values that were equal to 3 or -3, since any outliers in the data were trimmed to those values. After visualizing the outlier count per group (ASD, TD) in a box plot and tabling the data, we see there is a total of 75 subjects with at least one outlier in the ASD group, and 77 in the TD group. However, when we visualize this with a box plot, we see there is a denser set of outliers in the TD class compared to the ASD class, which implies that there are more subjects in TD with a high amount of outliers compared to ASD. TD also has a higher amount of total outliers as a group (ASD 1007, TD 1372) and of the subjects with the top 10 most outliers, 7 are from the TD group and 3 are from the ASD group, with the top 2 spots from the TD group. In conclusion, while many subjects have at least 1 outlier, the subjects with a very high amount of outliers mostly belong to the TD group and the subject with the msot outliers is in the TD group.
 
 ```{r}
 setwd('../data')
@@ -314,21 +326,21 @@ for (name in names(protein_vectors)) {
 kable_results[[3]]
 ```
 
-The metric we are interested in is the accuracy of the logistic regression model. Note that the prior analysis did not partition the data into training and testing sets before running the t.tests and Random Forest. Because of this, the model from the prior was likely overfit, which is why it produced an impressive accuracy score of about 83.9%. After partitioning the data, it performed significantly worse on the testing set. We observe that the accuracy is about 67.7%. This indicates that the prior panel is can classify ASD correctly about 67.7% of the time on the testing set.
+The metric we are interested in is the accuracy of the logistic regression model. Note that the prior analysis did not partition the data into training and testing sets before running the t.tests and Random Forest. Because of this, the model from the prior was likely overfit, which is why it produced an impressive accuracy score of about 83.9%. After partitioning the data, it performed significantly worse on the testing set. We observe that the accuracy is about 67.7%. This indicates that the prior panel can classify ASD correctly about 67.7% of the time on the testing set.
 
 ```{r}
 # Fuzzy intersection panel results
 kable_results[[2]]
 ```
 
-When using a fuzzy intersection, the accuracy increased slightly, with a score of about 77.4%, when compared to the prior panel. This indicates that the fuzzy intersection panel is can classify ASD correctly only about 77.4% of the time on the testing set.
+When using a fuzzy intersection, the accuracy increased slightly, with a score of about 77.4%, when compared to the prior panel. This indicates that the fuzzy intersection panel can classify ASD correctly only about 77.4% of the time on the testing set.
 
 ```{r}
 # Hard intersection panel results
 kable_results[[1]]
 ```
 
-When using a hard intersection, the accuracy increased as well, with a score of about 70.9% when compared to the prior panel. This indicates that the hard intersection panel is can classify ASD correctly only about 70.9% of the time on the testing set.
+When using a hard intersection, the accuracy increased as well, with a score of about 70.9% when compared to the prior panel. This indicates that the hard intersection panel can classify ASD correctly only about 70.9% of the time on the testing set.
 
 ### Improved classifier
 
