@@ -50,17 +50,22 @@ We are working with two datasets, `biomarker-raw.csv` and `biomarker-clean.RData
 
 Three statistical analysis approaches were used to determine a 'panel' of proteins that are most valuable to decide if a subject of the age of 18 months to 8 years of age will be classified as `ASD` or `TD`.
 
-We first mention the use of the **correlation** approach as our first method, which collects the correlation values between each protein and the ADOS (Autism Diagnostic Observation Schedule) - which is the measure of ASD symptom severity. To determine the most important relationships, the 10 largest values in magnitude are then selected to be the 'pre-panel' of predictive proteins. Next approach is using **t-tests** to determine the significance between each protein for each group. This is done by finding the sample mean of the protein values for each group and comparing to see if the sample means are indifferent. Essentially, we are testing if $\bar\mu_{TD_{1}} - \bar\mu_{ASD_{1}} = 0$ for an arbitrary protein, for each group. We can discover the most significant values by evaluating the p-values for each test. Those with the lowest values are accepted to be the most critical for our panel from the t-test approach. Lastly, we use a **random forest** model which not only delivers a model for testing, but can help determine feature (or variable) importance, which is ideal for our situation of selecting the most important proteins. After performing each model, we collected the top predictive proteins from all three methods, and used a 'fuzzy' intersection along with a 'hard' to find what all methods find to be important, denoting these as 'core' proteins. After collecting the 'core' proteins, we then run a logistic regression model with a classification setting to output a group. The results for both intersections are displayed below.
+We first mention the use of the **correlation** approach as our first method, which collects the correlation values between each protein and the ADOS (Autism Diagnostic Observation Schedule) - which is the measure of ASD symptom severity. To determine the most important relationships, the 10 highest values in magnitude are then selected to be the "pre-panel" of predictive proteins.
 
-The '**fuzzy'** intersection of the 3 methods posed a panel consisting of:
+Next, we conducted **t-tests** to compare the mean protein levels between ASD and TD groups. This test evaluates whether the sample means differ significantly, testing the hypothesis that $\bar\mu_{TD_{i}} - \bar\mu_{ASD_{i}} = 0$ for an arbitrary protein, $i$, for each group. Proteins with the lowest p-values (indicating significant differences) were deemed the most critical for inclusion in the t-test-based panel.
 
-**Calcineurin, MAPK2, (CXCL16, soluble), DERM, RELT, IGFBP-1, MAPK14, ALCAM, Notch 1, Fas, soluble, ERBB1, IgD, eIF-4H, MMP-2.**
+Lastly, we use a **random forest** model which not only delivers a model for testing, but can help determine feature (or variable) importance, which is ideal for our situation of selecting the most important proteins.
 
-Using a '**hard**' intersection with the R function `instersect`, we have the following group of proteins:
+After performing all three methods, we combined the results by identifying top predictive proteins from each approach. We used both a “fuzzy” and a “hard” intersection to find consensus proteins across methods, designating these as “core” proteins. Finally, a logistic regression model was applied to this core panel to classify subjects.
 
-**MAPK2, DERM, RELT, IGFBP-1, MAPK14, ALCAM, Notch 1, (gp130, soluble), IgD, PPID, Coagulation Factor IX.**
+The “fuzzy” intersection panel consisted of:\
+*Calcineurin, MAPK2, CXCL16 (soluble), DERM, RELT, IGFBP-1, MAPK14, ALCAM, Notch 1, Fas (soluble), ERBB1, IgD, eIF-4H, MMP-2.*
 
-The first intersection had an estimated accuracy of \~ 67.7% on the testing set, and the hard interestion had an estimated accuracy of \~ 70.9% on the testing set.
+The “hard” intersection (using the R function `intersect`) included:\
+*MAPK2, DERM, RELT, IGFBP-1, MAPK14, ALCAM, Notch 1, gp130 (soluble), IgD, PPID, Coagulation Factor IX.*
+
+**Performance**\
+The fuzzy intersection achieved an estimated accuracy of 67.7% on the testing set, while the hard intersection reached 70.9%.
 
 ## Findings
 
