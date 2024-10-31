@@ -1,0 +1,299 @@
+---
+title: "Assignment Outline"
+date: "2024-10-24"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: show
+---
+
+1)  What do you imagine is the reason for log-transforming the protein levels in biomarker-raw.csv? (Hint: look at the distribution of raw values for a sample of proteins.)
+
+```{r, warning=FALSE, results='hide'}
+# Loading packages
+library(ggplot2)
+library(readr)
+library(dplyr)
+library(reshape2)
+library(tidyverse)
+library(infer)
+library(randomForest)
+library(tidymodels)
+library(modelr)
+library(yardstick)
+library(kableExtra)
+
+# Read in the data
+biomarker_raw <- read_csv('biomarker-raw.csv', show_col_types=FALSE)
+
+# Set seed for reproducibility
+set.seed(123)
+```
+
+```{r}
+# Subset all proteins in the dataset and convert to numeric values
+proteins_numeric <- biomarker_raw %>% filter(Group %in% c("ASD", "TD")) %>%
+  dplyr::select(contains("protein", ignore.case= TRUE)) %>% 
+  mutate(across(everything(), as.numeric))
+
+# Randomly sample a vector of 10 protein names
+random_sample <- sample(names(proteins_numeric), 10)
+```
+
+```{r}
+# Looking at distribution of raw values for the random sample of proteins
+
+# Plot 10 histograms; one histogram per randomly sampled protein
+proteins_numeric %>% 
+  select(random_sample) %>% 
+  pivot_longer(everything()) %>% 
+  ggplot(aes(x = value)) + geom_histogram() +
+  facet_wrap(vars(name))
+```
+
+```{r}
+# Looking at distribution of raw values for the random sample of proteins that are log-transformed
+
+  # Log-transform all proteins
+  proteins_numeric_log <- proteins_numeric %>%
+    mutate(across(everything(), ~ log(. + 1)))
+  
+  # Plot 10 histograms; one histogram per randomly sampled protein
+
+proteins_numeric_log %>% 
+  select(random_sample) %>% 
+  pivot_longer(everything()) %>% 
+  ggplot(aes(x = value)) + geom_histogram() +
+  facet_wrap(vars(name))
+```
+
+  We used histograms to apply exploratory data analysis on 10 randomly sampled proteins. Viewing their distributions, we can see that all of the data is right-skewed. This indicates that there are some individual outliers that contain a higher level of that protein. The 'secreted frizzled-related protein' is the only protein in the random sample that has a bit more of a symmetrical distribution. After log-transforming that same random sample of proteins and viewing their distributions, the data is much more symmetrical. When working with data that is asymmetrical, applying a log-transformation can normalize the data, improve model fit, and reduce outliers.
+
+
+2.  Temporarily remove the outlier trimming from preprocessing and do some exploratory analysis of outlying values. Are there specific subjects (not values) that seem to be outliers? If so, are outliers more frequent in one group or the other? (Hint: consider tabluating the number of outlying values per subject.)
+
+```{r}
+## FROM PREPROCESSING
+# get names
+var_names <- read_csv('biomarker-raw.csv', 
+                      col_names = F, 
+                      n_max = 2, 
+                      col_select = -(1:2)) %>%
+  t() %>%
+  as_tibble() %>%
+  rename(name = V1, 
+         abbreviation = V2) %>%
+  na.omit()
+
+# function for trimming outliers (good idea??)
+trim <- function(x, .at){
+  x[abs(x) > .at] <- sign(x[abs(x) > .at])*.at
+  return(x)
+}
+
+# read in data
+biomarker_clean <- read_csv('biomarker-raw.csv', 
+                            skip = 2,
+                            col_select = -2L,
+                            col_names = c('group', 
+                                          'empty',
+                                          pull(var_names, abbreviation),
+                                          'ados'),
+                            na = c('-', '')) %>%
+  filter(!is.na(group)) %>%
+  # log transform, center and scale, and trim
+  mutate(across(.cols = -c(group, ados), 
+                ~ trim(scale(log10(.x))[, 1], .at = 3))) %>%
+  # reorder columns
+  select(group, ados, everything())
+
+## NEW STUFF
+temp <- biomarker_clean %>% 
+  filter(if_any(CHIP:PLXB2, ~ . == 3) | if_any(CHIP:PLXB2, ~ . == -3) )
+
+
+outlier_count <- temp %>% 
+  rowwise() %>%
+  mutate(outliers = sum(c_across(CHIP:PLXB2) == 3) + sum(c_across(CHIP:PLXB2) == -3)) %>% 
+  select(group, ados,outliers, everything())
+
+
+#box plot of number of outliers per subject in each group
+outlier_count %>% 
+  ggplot(aes(x = group, y = outliers)) +
+  geom_boxplot() +
+  labs(title = 'Outliers per group',
+       x = 'Group',
+       y = 'Number of outliers') 
+
+#total outliers per group and number of people with outliers per group
+outlier_count %>% 
+  group_by(group) %>%
+  summarise(total_out = sum(outliers), subjects_out = n()) %>% 
+  kable()
+
+#top 10 subjects with most outliers
+outlier_count %>% 
+  arrange(desc(outliers)) %>% 
+  select(group, outliers) %>%
+  head(10) %>% 
+  kable()
+
+```
+
+-   From the exploratory data analysis above, we kept the transformation in place, and instead worked with the values that were equal to 3, since any outliers in the data were changed to the value of `.at` in the function: `trim <- function(x, .at)`. After visualizing the outlier count per group (ASD, TD) in a box plot, and tabling the data, we see there is a total of 74 subjects with at least one outlier in the ASD group, and 77 in the TD group. Visualizing this with a box plot, we see there is a denser set of outliers in the TD class compared to the ASD class, which shows that there are more subjects in TD with a very high number of outliers compared to ASD. TD also has a higher amount of total outliers as a group (ASD 813, TD 1161) and of the subjects with the top 10 most outliers, 7 are from the TD group and 3 are from the ASD group.
+
+3)  Experiment with the following modifications:
+
+-   repeat the analysis but carry out the entire selection procedure on a training partition -- in other words, set aside some testing data at the very beginning and don't use it until you are evaluating accuracy at the very end
+
+-   choose a larger number (more than ten) of top predictive proteins using each selection method
+
+-   use a fuzzy intersection instead of a hard intersection to combine the sets of top predictive proteins across selection methods
+
+```{r}
+# Split the data into training and testing
+biomarker_clean_split <- biomarker_clean %>%
+  initial_split(prop = 0.8)
+
+biomarker_clean_train <- training(biomarker_clean_split)
+
+biomarker_clean_test <- testing(biomarker_clean_split)
+
+## MULTIPLE TESTING
+####################
+
+# function to compute tests
+test_fn <- function(.df){
+  t_test(.df, 
+         formula = level ~ group,
+         order = c('ASD', 'TD'),
+         alternative = 'two-sided',
+         var.equal = F)
+}
+
+ttests_out <- biomarker_clean_train %>%
+  # drop ADOS score
+  select(-ados) %>%
+  # arrange in long format
+  pivot_longer(-group, 
+               names_to = 'protein', 
+               values_to = 'level') %>%
+  # nest by protein
+  nest(data = c(level, group)) %>% 
+  # compute t tests
+  mutate(ttest = map(data, test_fn)) %>%
+  unnest(ttest) %>%
+  # sort by p-value
+  arrange(p_value) %>%
+  # multiple testing correction
+  mutate(m = n(),
+         hm = log(m) + 1/(2*m) - digamma(1),
+         rank = row_number(),
+         p.adj = m*hm*p_value/rank)
+
+# select significant proteins
+proteins_s1 <- ttests_out %>%
+  slice_min(p.adj, n = 25) %>%
+  pull(protein)
+
+## RANDOM FOREST
+##################
+
+# Using only the training set, store predictors and response separately
+predictors <- biomarker_clean_train %>%
+  select(-c(group, ados))
+
+response <- biomarker_clean_train %>% pull(group) %>% factor()
+
+# fit RF
+rf_out <- randomForest(x = predictors, 
+                       y = response, 
+                       ntree = 1000, 
+                       importance = T)
+
+# check errors
+rf_out$confusion
+
+# compute importance scores
+proteins_s2 <- rf_out$importance %>% 
+  as_tibble() %>%
+  mutate(protein = rownames(rf_out$importance)) %>%
+  slice_max(MeanDecreaseGini, n = 25) %>%
+  pull(protein)
+
+## LOGISTIC REGRESSION
+#######################
+
+# Fuzzy intersection; pick top 15 
+proteins_s1_ranked <- data.frame(proteins_s1, rank_s1=c(1:length(proteins_s1)))
+proteins_s2_ranked <- data.frame(proteins_s2, rank_s2=c(1:length(proteins_s2)))
+
+colnames(proteins_s1_ranked) <- c("name", "rank_s1")
+colnames(proteins_s2_ranked) <- c("name", "rank_s2")
+
+# Set the number of top elements to select from each data frame
+n <- 10  # adjustable
+
+# Select the top n names from each ranked list
+top_s1 <- head(proteins_s1_ranked$name, n)
+top_s2 <- head(proteins_s2_ranked$name, n)
+
+# Combine the names and remove duplicates
+proteins_sstar <- unique(c(top_s1, top_s2))
+
+proteins_ranked <- merge(proteins_s1_ranked, proteins_s2_ranked, by="name")
+
+# pull top significant proteins with fuzzy intersection
+proteins_sstar <- proteins_ranked %>% pull(name)
+
+# hard intersection
+proteins_sstar_hard <- intersect(proteins_s1, proteins_s2)
+
+biomarker_sstar <- biomarker_clean %>%
+  select(group, any_of(proteins_sstar)) %>%
+  mutate(class = (group == 'ASD')) %>%
+  select(-group)
+
+# partition into training and test set
+biomarker_split <- biomarker_sstar %>%
+  initial_split(prop = 0.8)
+
+biomarker_training <- training(biomarker_split)
+
+biomarker_testing <- testing(biomarker_split)
+
+# fit logistic regression model to training set
+fit <- glm(class ~ ., 
+           data = biomarker_training, 
+           family = 'binomial')
+
+# evaluate errors on test set
+class_metrics <- metric_set(sensitivity, 
+                            specificity, 
+                            accuracy,
+                            roc_auc)
+
+biomarker_testing %>%
+  add_predictions(fit, type = 'response') %>%
+  mutate(est = as.factor(pred > 0.5), tr_c = as.factor(class)) %>%
+  class_metrics(estimate = est,
+              truth = tr_c, pred,
+              event_level = 'second')
+```
+
+We chose the top 30 proteins from each method, t-test and RF. Then, we averaged
+the rank of proteins from both groups, choosing the top ranked that appeared
+in both groups. This ended up yielding 14 significant proteins from this fuzzy
+intersection, and improved all four metric that we used to measure the model.
+
+How are results affected by each modification?
+
+4)  Use any method to find either:
+
+-   a simpler panel that achieves comparable classification accuracy
+
+-   an alternative panel that achieves improved classification accuracy
+
+Benchmark your results against the in-class analysis.
