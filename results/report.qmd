@@ -42,7 +42,7 @@ This report studies potential biological markers in serum samples for identifyin
 
 ## Dataset
 
-We are working with two datasets, `biomarker-raw.csv` and `biomarker-clean.RData`. Both datasets consist of serum samples of 76 boys who have autism spectrum disorder (ASD) and 78 boys who are typically developing (TD). Serum samples were obtained via fasting blood draw in a 3.5 ml Serum Separation Tube at times between 8AM-10AM for all subjects. The boys are of 18 months to 8 years of age. Within each subject, 1,317 proteins are measured, and the data helps to identify early biological markers for ASD. The average age for both groups is roughly the same. The mean ASD group age is 5.6 years old with a standard deviation of 1.7 years, and the mean TD group age is 5.7 years old with a standard deviation of 2 years. It is important to note that 41.7% of ASD subjects and 22.4% of TD subjects have seasonal allergies, which may have an effect on the data. For the 76 ASD subjects, the ratios of the ethnicities are as follows: 45.2% White/Caucasians, 35.6% Hispanic/Latinos, 4.1% African American, 2.6% Asian, 12.3% Multiple ethnicities/or Other, and 4.1% not reported. For the 78 TD subjects, the ratios of the ethnicities are as follows: 51.9% White/Caucasians, 7.8% Hispanic/Latinos, 18.2% African American, 3.9% Asian, 18.2% Multiple ethnicities/or Other, and 1.2% not reported.
+We are working with two datasets, `biomarker-raw.csv` and `biomarker-clean.RData`. Both datasets consist of serum samples of 76 boys who have autism spectrum disorder and 78 boys who are typically developing. Serum samples were obtained via fasting blood draw in a 3.5 ml Serum Separation Tube at times between 8AM-10AM for all subjects. The boys are of 18 months to 8 years of age. Within each subject, 1,317 proteins are measured, and the data helps to identify early biological markers for ASD. The average age for both groups is roughly the same. The mean ASD group age is 5.6 years old with a standard deviation of 1.7 years, and the mean TD group age is 5.7 years old with a standard deviation of 2 years. It is important to note that 41.7% of ASD subjects and 22.4% of TD subjects have seasonal allergies, which may have an effect on the data. For the 76 ASD subjects, the ratios of the ethnicities are as follows: 45.2% White/Caucasians, 35.6% Hispanic/Latinos, 4.1% African American, 2.6% Asian, 12.3% Multiple ethnicities/or Other, and 4.1% not reported. For the 78 TD subjects, the ratios of the ethnicities are as follows: 51.9% White/Caucasians, 7.8% Hispanic/Latinos, 18.2% African American, 3.9% Asian, 18.2% Multiple ethnicities/or Other, and 1.2% not reported.
 
 `biomarker-raw.csv` contains all raw data that has been collected, with subjects row-wise and group, Autism Diagnostic Observation Schedule (ADOS), and proteins column-wise. `biomarker_clean` is the cleaned version of `biomarker-raw.csv` with the raw data log-transformed and z-transformed and outliers trimmed.
 
@@ -50,26 +50,19 @@ We are working with two datasets, `biomarker-raw.csv` and `biomarker-clean.RData
 
 Three statistical analysis approaches were used to determine a 'panel' of proteins that are most valuable to decide if a subject of the age of 18 months to 8 years of age will be classified as `ASD` or `TD`.
 
-We first mention the use of the **correlation** approach as our first method, which collects the correlation values between each protein and the ADOS (Autism Diagnostic Observation Schedule) - which is the measure of ASD symptom severity. To determine the most important relationships, the 10 highest values in magnitude are then selected to be the "pre-panel" of predictive proteins.
+First, a **correlation** approach was used, which collects the correlation values between each protein and the ADOS (Autism Diagnostic Observation Schedule) - which is the measure of ASD symptom severity. To determine the most important relationships, the 10 highest values in magnitude were then selected to be the "pre-panel" of predictive proteins.
 
-Next, we conducted **t-tests** to compare the mean protein levels between ASD and TD groups. This test evaluates whether the sample means differ significantly, testing the hypothesis that $\bar\mu_{TD_{i}} - \bar\mu_{ASD_{i}} = 0$ for an arbitrary protein, $i$, for each group. Proteins with the lowest p-values (indicating significant differences) were deemed the most critical for inclusion in the t-test-based panel.
+Next, they conducted **t-tests** to compare the mean protein levels between ASD and TD groups. This test evaluates whether the sample means differ significantly, testing the hypothesis that $\bar\mu_{TD_{i}} - \bar\mu_{ASD_{i}} = 0$ for an arbitrary protein, $i$, for each group. Proteins with the 10 lowest p-values (indicating significant differences) were deemed the most critical for inclusion in the t-test-based panel.
 
-Lastly, we use a **random forest** model which not only delivers a model for testing, but can help determine feature (or variable) importance, which is ideal for our situation of selecting the most important proteins.
+Lastly, they used a **random forest** model which not only delivers a model for testing, but can help determine feature (or variable) importance, which is ideal for our situation of selecting the most important proteins. The 10 proteins with the highest importance scores were selected to be the "pre-panel" of predictive proteins.
 
-After performing all three methods, we combined the results by identifying top predictive proteins from each approach. We used both a “fuzzy” and a “hard” intersection to find consensus proteins across methods, designating these as “core” proteins. Finally, a logistic regression model was applied to this core panel to classify subjects.
+After performing all three methods, they compared the pre-panels from the 3 methods and found 5 proteins that appear in all 3 panels. Those were labelled as the core proteins. The core proteins were *MAPK14, IgD, DERM, EPHB2, suPAR*.
 
-The “fuzzy” intersection panel consisted of:\
-*Calcineurin, MAPK2, CXCL16 (soluble), DERM, RELT, IGFBP-1, MAPK14, ALCAM, Notch 1, Fas (soluble), ERBB1, IgD, eIF-4H, MMP-2.*
+Finally, a logistic regression model was applied to this core panel to classify subjects. The core proteins were added as the explanatory variables to help predict if the subjects are in the ASD or TD group. They also wanted to see if there are other proteins that could increase the model's predictive model, so they added one at a time to see if the AUC value would increase. They ended up adding 4 more proteins to create an "optimal" protein panel. The additional 4 proteins include *ROR1, GI24, eIF-4H, ARSB*.
 
-The “hard” intersection (using the R function `intersect`) included:\
-*MAPK2, DERM, RELT, IGFBP-1, MAPK14, ALCAM, Notch 1, gp130 (soluble), IgD, PPID, Coagulation Factor IX.*
-
-**Performance**\
-The fuzzy intersection achieved an estimated accuracy of 67.7% on the testing set, while the hard intersection reached 70.9%.
+The logistic regression model with the 9 optimal proteins had an AUC of 0.853 $\pm$ 0.066, a sensitivity of 0.833 $\pm$ 0.118, and a specificity of 0.846 $\pm$ 0.118.
 
 ## Findings
-
-In the sub-headers below, the data explains the processes of collecting data on the outliers in the dataset, on subjects and finding a different panel of proteins that compares to the benchmark from class.
 
 ### Impact of preprocessing and outliers
 
@@ -118,13 +111,7 @@ proteins_numeric_log %>%
   theme(strip.text.x = element_text(size = 7))
 ```
 
-<<<<<<< Updated upstream
-We used histograms to apply exploratory data analysis on 10 randomly sampled proteins. Viewing their distributions, we can see that all of the data is right-skewed. This indicates that there are some individual outliers that contain a higher level of that protein. The 'secreted frizzled-related protein' is the only protein in the random sample that has a bit more of a symmetrical distribution. After log-transforming that same random sample of proteins and viewing their distributions, the data is much more symmetrical. When working with data that is asymmetrical, applying a log-transformation can normalize the data, improve model fit, and reduce outliers.
-
-From there, we wanted to take a look at which group these individuals with outliers were coming from. To analyze this, we worked with any values that were equal to 3 or -3, since any outliers in the data were trimmed to those values. After visualizing the outlier count per group (ASD, TD) in a box plot and tabling the data, we see there is a total of 75 subjects with at least one outlier in the ASD group, and 77 in the TD group. However, when we visualize this with a box plot, we see there is a denser set of outliers in the TD class compared to the ASD class, which implies that there are more subjects in TD with a high amount of outliers compared to ASD. TD also has a higher amount of total outliers as a group (ASD 1007, TD 1372) and of the subjects with the top 10 most outliers, 7 are from the TD group and 3 are from the ASD group, with the top 2 spots from the TD group. In conclusion, while many subjects have at least 1 outlier, the subjects with a very high amount of outliers mostly belong to the TD group and the subject with the msot outliers is in the TD group.
-=======
-From there, we wanted to take a look at which group these individuals with outliers were coming from. To analyze this, we worked with any values that were equal to 3 or -3, since any outliers in the data were trimmed to those values. After visualizing the outlier count per group (ASD, TD) in a box plot and tabling the data, we see there is a total of 75 subjects with at least one outlier in the ASD group, and 77 in the TD group. However, TD has a higher amount of total outliers as a group (ASD 1007, TD 1372).
->>>>>>> Stashed changes
+From there, we wanted to take a look at which group these individuals with outliers were coming from. To analyze this, we worked with any values that were equal to 3 or -3, since any outliers in the data were trimmed to those values. After tabling the data, we see there is a total of 75 subjects with at least one outlier in the ASD group, and 77 in the TD group. However, TD has a higher amount of total outliers as a group (ASD 1007, TD 1372).
 
 ```{r}
 setwd('../data')
@@ -145,7 +132,7 @@ outlier_count %>%
   kable(col.names = c('Group', 'Total Outliers', 'Number of Subjects'), caption = 'Total Outlier and Number of Subjects with Outliers per Group')
 ```
 
-When we visualise this with a box plot, we see there is a denser set of outliers in the TD class compared to the ASD class, which implies that there are more subjects in TD with a high amount of outliers compared to ASD.  
+When we visualise outlier count per individual with a box plot, we see there is a denser set of outliers in the TD class compared to the ASD class, which implies that there are more subjects in TD with an abnormally high amount of outliers compared to ASD.  
 
 ```{r}
 #box plot of number of outliers per subject in each group
@@ -169,8 +156,9 @@ outlier_count %>%
 
 ### Methodlogical variations
 
-To improve on the results of the prior analysis, we split the data into a training and testing set at the beginning, and ran the t-tests and Random Forest using only the training set to find the top predictive proteins. Then, we evaluated the errors on the testing set. This ensures that the logistic regression model is not overfit. After some experimentation, we found that the optimal choice for the number of top predictive proteins from each method was 20, as opposed to the previous 10 from the in-class analysis. From there, we experimented with using a hard or fuzzy interaction between the methods to create our  panel of proteins and found that using a fuzzy intersection over a hard intersection allows for other potentially significant proteins to also be included into the panel. Our implementation involved picking the top 10 proteins from each list, combining them to form the new panel, and removing the duplicate proteins to create the fuzzy intersection. The hard intersection was created by taking any proteins the 2 top 20 lists had in common.
+To improve on the results of the prior analysis, we split the data into a training and testing set at the beginning, and ran the t-tests and Random Forest using only the training set to find the top predictive proteins. Then, we evaluated the errors on the testing set. This ensures that the logistic regression model is not overfit. After some experimentation, we found that the optimal choice for the number of top predictive proteins from each method was 20, as opposed to the previous 10 from the in-class analysis. From there, we experimented with using a hard or fuzzy interaction between the methods to create our  panel of proteins and found that using a fuzzy intersection over a hard intersection allows for other potentially significant proteins to also be included into the panel. Our implementation involved picking the top 10 proteins from each list, combining them, and removing the duplicate proteins to create the fuzzy intersection. The hard intersection was created by taking any proteins the 2 top 20 lists had in common.
 
+The 2 protein panels from the 2 different intersections are as follows, as well as the confusion matrix for the Random Forest model:
 
 ```{r}
 # Split the data into training and testing; 80% training, 20% testing
@@ -240,7 +228,8 @@ rf_out <- randomForest(x = predictors,
                        importance = T)
 
 # check errors
-rf_out$confusion
+rf_out$confusion %>% 
+  kable(caption = 'Confusion Matrix for Random Forest')
 
 # compute importance scores, selecting 30 significant proteins from RF
 proteins_s2 <- rf_out$importance %>% 
@@ -269,7 +258,8 @@ top_s2 <- head(proteins_s2_ranked$name, n)
 proteins_sstar_fuzzy <- unique(c(top_s1, top_s2))
 
 # View the fuzzy intersection panel
-proteins_sstar_fuzzy
+proteins_sstar_fuzzy %>% 
+  kable(caption = 'Fuzzy Intersection Panel')
 ```
 
 ```{r}
@@ -277,7 +267,8 @@ proteins_sstar_fuzzy
 proteins_sstar_hard <- intersect(proteins_s1, proteins_s2)
 
 # View the hard intersection panel
-proteins_sstar_hard
+proteins_sstar_hard %>% 
+  kable(caption = 'Hard Intersection Panel')
 ```
 
 ```{r}
@@ -342,39 +333,25 @@ for (name in names(protein_vectors)) {
 }
 
 ```
+
 The metric we are interested in is the accuracy of the logistic regression model. Note that the prior analysis did not partition the data into training and testing sets before running the t-tests and Random Forest. Because of this, the model from the prior was likely overfit, which is why it produced an impressive accuracy score of about 83.9%. After partitioning the data, it performed significantly worse on the testing set. We observe that the accuracy is about 67.7%. This indicates that the prior panel can classify ASD correctly about 67.7% of the time on the testing set.
 
 ```{r}
 # Prior panel results
 kable_results[[3]]
 ```
-<<<<<<< Updated upstream
 
-The metric we are interested in is the accuracy of the logistic regression model. Note that the prior analysis did not partition the data into training and testing sets before running the t.tests and Random Forest. Because of this, the model from the prior was likely overfit, which is why it produced an impressive accuracy score of about 83.9%. After partitioning the data, it performed significantly worse on the testing set. We observe that the accuracy is about 67.7%. This indicates that the prior panel can classify ASD correctly about 67.7% of the time on the testing set.
-
-=======
 When using the fuzzy intersection to choose our protein panel, the accuracy increased slightly, with a score of about 77.4%, when compared to the prior panel. This indicates that the fuzzy intersection panel can classify ASD correctly only about 77.4% of the time on the testing set.
->>>>>>> Stashed changes
 ```{r}
 # Fuzzy intersection panel results
 kable_results[[2]]
 ```
-<<<<<<< Updated upstream
 
-When using a fuzzy intersection, the accuracy increased slightly, with a score of about 77.4%, when compared to the prior panel. This indicates that the fuzzy intersection panel can classify ASD correctly only about 77.4% of the time on the testing set.
-
-=======
 When using the hard intersection, the accuracy increased as well, with a score of about 70.9% when compared to the prior panel. This indicates that the hard intersection panel can classify ASD correctly only about 70.9% of the time on the testing set.
->>>>>>> Stashed changes
 ```{r}
 # Hard intersection panel results
 kable_results[[1]]
 ```
-
-<<<<<<< Updated upstream
-When using a hard intersection, the accuracy increased as well, with a score of about 70.9% when compared to the prior panel. This indicates that the hard intersection panel can classify ASD correctly only about 70.9% of the time on the testing set.
-=======
->>>>>>> Stashed changes
 
 ### Improved classifier
 
