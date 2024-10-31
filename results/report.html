@@ -287,7 +287,14 @@ window.Quarto = {
 </div>
 <div class="cell">
 <div class="cell-output-display">
-<table class="caption-top table table-sm table-striped small" data-quarto-postprocess="true">
+<table class="kable_wrapper caption-top table table-sm table-striped small" data-quarto-postprocess="true">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<tbody>
+<tr class="odd">
+<td><table class="caption-top table table-sm table-striped small" data-quarto-postprocess="true">
 <caption>Fuzzy Intersection Panel</caption>
 <thead>
 <tr class="header">
@@ -350,14 +357,8 @@ window.Quarto = {
 <td style="text-align: left;">MMP-2</td>
 </tr>
 </tbody>
-</table>
-
-
-</div>
-</div>
-<div class="cell">
-<div class="cell-output-display">
-<table class="caption-top table table-sm table-striped small" data-quarto-postprocess="true">
+</table></td>
+<td><table class="caption-top table table-sm table-striped small" data-quarto-postprocess="true">
 <caption>Hard Intersection Panel</caption>
 <thead>
 <tr class="header">
@@ -396,15 +397,28 @@ window.Quarto = {
 <td style="text-align: left;">Coagulation Factor IX</td>
 </tr>
 </tbody>
+</table></td>
+</tr>
+</tbody>
 </table>
 
 
 </div>
 </div>
 <p>The metric we are interested in is the accuracy of the logistic regression model. Note that the prior analysis did not partition the data into training and testing sets before running the t-tests and Random Forest. Because of this, the model from the prior was likely overfit, which is why it produced an impressive accuracy score of about 83.9%. After partitioning the data, it performed significantly worse on the testing set. We observe that the accuracy is about 67.7%. This indicates that the prior panel can classify ASD correctly about 67.7% of the time on the testing set.</p>
+<p>When using the fuzzy intersection to choose our protein panel, the accuracy increased slightly, with a score of about 77.4%, when compared to the prior panel. This indicates that the fuzzy intersection panel can classify ASD correctly only about 77.4% of the time on the testing set.</p>
+<p>When using the hard intersection, the accuracy increased as well, with a score of about 70.9% when compared to the prior panel. This indicates that the hard intersection panel can classify ASD correctly only about 70.9% of the time on the testing set.</p>
 <div class="cell">
 <div class="cell-output-display">
-<table class="caption-top table table-sm table-striped small" data-quarto-postprocess="true">
+<table class="kable_wrapper caption-top table table-sm table-striped small" data-quarto-postprocess="true">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<tbody>
+<tr class="odd">
+<td><table class="caption-top table table-sm table-striped small" data-quarto-postprocess="true">
 <caption>Metrics for prior proteins</caption>
 <thead>
 <tr class="header">
@@ -435,15 +449,8 @@ window.Quarto = {
 <td style="text-align: right;">0.7375000</td>
 </tr>
 </tbody>
-</table>
-
-
-</div>
-</div>
-<p>When using the fuzzy intersection to choose our protein panel, the accuracy increased slightly, with a score of about 77.4%, when compared to the prior panel. This indicates that the fuzzy intersection panel can classify ASD correctly only about 77.4% of the time on the testing set.</p>
-<div class="cell">
-<div class="cell-output-display">
-<table class="caption-top table table-sm table-striped small" data-quarto-postprocess="true">
+</table></td>
+<td><table class="caption-top table table-sm table-striped small" data-quarto-postprocess="true">
 <caption>Metrics for fuzzy_intersection proteins</caption>
 <thead>
 <tr class="header">
@@ -474,15 +481,8 @@ window.Quarto = {
 <td style="text-align: right;">0.9125000</td>
 </tr>
 </tbody>
-</table>
-
-
-</div>
-</div>
-<p>When using the hard intersection, the accuracy increased as well, with a score of about 70.9% when compared to the prior panel. This indicates that the hard intersection panel can classify ASD correctly only about 70.9% of the time on the testing set.</p>
-<div class="cell">
-<div class="cell-output-display">
-<table class="caption-top table table-sm table-striped small" data-quarto-postprocess="true">
+</table></td>
+<td><table class="caption-top table table-sm table-striped small" data-quarto-postprocess="true">
 <caption>Metrics for hard_intersection proteins</caption>
 <thead>
 <tr class="header">
@@ -513,6 +513,9 @@ window.Quarto = {
 <td style="text-align: right;">0.7435897</td>
 </tr>
 </tbody>
+</table></td>
+</tr>
+</tbody>
 </table>
 
 
@@ -521,25 +524,127 @@ window.Quarto = {
 </section>
 <section id="improved-classifier" class="level3">
 <h3 class="anchored" data-anchor-id="improved-classifier">Improved classifier</h3>
-<p>After running a logistic regression on the prior, fuzzy intersection, and hard intersection panels on the training set and testing the models, we improved the accuracy of the prior analysis by about 10% with the hard intersection. The protein panel for this approach is the following:</p>
-<div class="cell">
-<div class="cell-output cell-output-stdout">
-<pre><code> [1] "DERM"                  "FSTL1"                 "MRC2"                 
- [4] "Notch 1"               "Nectin-like protein 2" "IgD"                  
- [7] "MMP-2"                 "ALCAM"                 "IGFBP-1"              
-[10] "Coagulation Factor IX"</code></pre>
-</div>
-</div>
+<p>After running a logistic regression on the prior, fuzzy intersection, and hard intersection panels on the training set and testing the models, we improved the accuracy of the prior analysis by about 10% with the hard intersection.</p>
 <p>This improvement of accuracy is mainly due to the splitting of the training and testing data before running the t-test and Random Forest to find significant proteins. The prior analysis likely overfit the model due to the lack of any splitting. We also increased the number of top predictive proteins from 10 to 20, which allowed for more proteins to be considered in the panel.</p>
-<p>We have also achieved similar accuracy to the prior, at 70.9% (compared to 67.7%) with a fuzzy intersection. The protein panel is as follows:</p>
+<p>We have also achieved similar accuracy to the prior, at 70.9% (compared to 67.7%) with a fuzzy intersection. The protein panels of the 2 approaches are as follows:</p>
 <div class="cell">
-<div class="cell-output cell-output-stdout">
-<pre><code> [1] "DERM"                  "PTN"                   "RELT"                 
- [4] "CXCL16, soluble"       "FSTL1"                 "MRC2"                 
- [7] "Notch 1"               "EPHB2"                 "C1QR1"                
-[10] "Nectin-like protein 2" "ALCAM"                 "Coagulation Factor IX"
-[13] "IgD"                   "IGFBP-1"               "PERL"                 
-[16] "FSTL3"                 "eIF-4H"                "MMP-2"                </code></pre>
+<div class="cell-output-display">
+<table class="kable_wrapper caption-top table table-sm table-striped small" data-quarto-postprocess="true">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<tbody>
+<tr class="odd">
+<td><table class="caption-top table table-sm table-striped small" data-quarto-postprocess="true">
+<caption>Fuzzy Intersection Panel</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th">x</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">DERM</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">PTN</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">RELT</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">CXCL16, soluble</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">FSTL1</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">MRC2</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Notch 1</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">EPHB2</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">C1QR1</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Nectin-like protein 2</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">ALCAM</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Coagulation Factor IX</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">IgD</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">IGFBP-1</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">PERL</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">FSTL3</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">eIF-4H</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">MMP-2</td>
+</tr>
+</tbody>
+</table></td>
+<td><table class="caption-top table table-sm table-striped small" data-quarto-postprocess="true">
+<caption>Hard Intersection Panel</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th">x</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">DERM</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">FSTL1</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">MRC2</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Notch 1</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Nectin-like protein 2</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">IgD</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">MMP-2</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">ALCAM</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">IGFBP-1</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Coagulation Factor IX</td>
+</tr>
+</tbody>
+</table></td>
+</tr>
+</tbody>
+</table>
+
+
 </div>
 </div>
 </section>

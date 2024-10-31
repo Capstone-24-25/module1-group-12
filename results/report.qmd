@@ -257,18 +257,19 @@ top_s2 <- head(proteins_s2_ranked$name, n)
 # Combine the names and remove duplicates
 proteins_sstar_fuzzy <- unique(c(top_s1, top_s2))
 
-# View the fuzzy intersection panel
-proteins_sstar_fuzzy %>% 
-  kable(caption = 'Fuzzy Intersection Panel')
 ```
 
 ```{r}
 # hard intersection
 proteins_sstar_hard <- intersect(proteins_s1, proteins_s2)
 
-# View the hard intersection panel
-proteins_sstar_hard %>% 
-  kable(caption = 'Hard Intersection Panel')
+#view the 2 panels
+kables(list(
+  proteins_sstar_fuzzy %>% 
+    kable(caption = 'Fuzzy Intersection Panel'),
+  proteins_sstar_hard %>% 
+    kable(caption = 'Hard Intersection Panel')
+))
 ```
 
 ```{r}
@@ -336,35 +337,33 @@ for (name in names(protein_vectors)) {
 
 The metric we are interested in is the accuracy of the logistic regression model. Note that the prior analysis did not partition the data into training and testing sets before running the t-tests and Random Forest. Because of this, the model from the prior was likely overfit, which is why it produced an impressive accuracy score of about 83.9%. After partitioning the data, it performed significantly worse on the testing set. We observe that the accuracy is about 67.7%. This indicates that the prior panel can classify ASD correctly about 67.7% of the time on the testing set.
 
-```{r}
-# Prior panel results
-kable_results[[3]]
-```
-
 When using the fuzzy intersection to choose our protein panel, the accuracy increased slightly, with a score of about 77.4%, when compared to the prior panel. This indicates that the fuzzy intersection panel can classify ASD correctly only about 77.4% of the time on the testing set.
-```{r}
-# Fuzzy intersection panel results
-kable_results[[2]]
-```
+
 
 When using the hard intersection, the accuracy increased as well, with a score of about 70.9% when compared to the prior panel. This indicates that the hard intersection panel can classify ASD correctly only about 70.9% of the time on the testing set.
 ```{r}
-# Hard intersection panel results
-kable_results[[1]]
+# Prior panel results
+kables(list(
+  kable_results[[3]],
+  kable_results[[2]],
+  kable_results[[1]]
+))
 ```
 
 ### Improved classifier
 
-After running a logistic regression on the prior, fuzzy intersection, and hard intersection panels on the training set and testing the models, we improved the accuracy of the prior analysis by about 10% with the hard intersection. The protein panel for this approach is the following:
-
-```{r}
-proteins_sstar_hard
-```
+After running a logistic regression on the prior, fuzzy intersection, and hard intersection panels on the training set and testing the models, we improved the accuracy of the prior analysis by about 10% with the hard intersection. 
 
 This improvement of accuracy is mainly due to the splitting of the training and testing data before running the t-test and Random Forest to find significant proteins. The prior analysis likely overfit the model due to the lack of any splitting. We also increased the number of top predictive proteins from 10 to 20, which allowed for more proteins to be considered in the panel.
 
-We have also achieved similar accuracy to the prior, at 70.9% (compared to 67.7%) with a fuzzy intersection. The protein panel is as follows:
+We have also achieved similar accuracy to the prior, at 70.9% (compared to 67.7%) with a fuzzy intersection. The protein panels of the 2 approaches are as follows:
 
 ```{r}
-proteins_sstar_fuzzy
+#view the 2 panels
+kables(list(
+  proteins_sstar_fuzzy %>% 
+    kable(caption = 'Fuzzy Intersection Panel'),
+  proteins_sstar_hard %>% 
+    kable(caption = 'Hard Intersection Panel')
+))
 ```
